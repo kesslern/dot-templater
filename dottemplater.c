@@ -38,7 +38,7 @@ void free_substitutions(substitution *sub)
     }
 }
 
-char *strsub(char *str, char *key, char *value)
+char *strsub(const char *str, const char *key, const char *value)
 {
     int occurance_len = strstr(str, key) - str;
     int value_len = strlen(value);
@@ -75,7 +75,7 @@ char *substitute_line(char *line)
     return result;
 }
 
-void substitute_file(char *input, char *output)
+void substitute_file(const char *input, const char *output)
 {
     FILE *in, *out;
     char *line = NULL;
@@ -86,7 +86,7 @@ void substitute_file(char *input, char *output)
     in = fopen(input, "r");
     out = fopen(output, "w");
 
-    if (in == NULL) {
+    if (in == NULL || out == NULL) {
         perror("fopen");
         exit(EXIT_FAILURE);
     }
@@ -103,10 +103,28 @@ void substitute_file(char *input, char *output)
     fclose(out);
 }
 
+char *source_dir;
+char *dest_dir;
+
 int walker(const char *fpath, __attribute__((unused)) const struct stat *sb,
            __attribute__((unused)) int flags, struct FTW *ftwbuf)
 {
-    printf("%s | %s\n", fpath, fpath + ftwbuf->base);
+    char *dest_file = strsub(fpath, source_dir, dest_dir);
+    printf("%s | %s | %s ", fpath, fpath + ftwbuf->base, dest_file);
+    if (is_dir(fpath)) {
+        printf("directory ");
+        if (is_dir(dest_file)) {
+            printf("dest exists ");
+        } else {
+            printf("dest does not exist ");
+            mkdir(dest_file, 0700);
+        }
+    } else {
+        substitute_file(fpath, dest_file);
+    }
+
+    printf("\n");
+    free(dest_file);
     return 0;
 }
 
@@ -119,7 +137,6 @@ int main(int argc, char **argv)
 
     if (!is_file(argv[1])) {
         printf("Expected first argument to be a rules file.\n");
-
     }
 
     if (!is_dir(argv[2])) {
@@ -132,6 +149,9 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
+    source_dir = argv[2];
+    dest_dir = argv[3];
+
     /* Parse rules file with variable substitutions. */
     char *buffer = read_file(argv[1]);
     config config = {.substitution_saver = &substitution_saver};
@@ -142,7 +162,7 @@ int main(int argc, char **argv)
     // substitute_file(argv[1], "out");
 
     nftw(argv[2], &walker, 15, 0);
-
+    printf("ok\n");
     free(buffer);
     // free(template);
     free_substitutions(first);
