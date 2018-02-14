@@ -12,24 +12,30 @@ void *safe_calloc(size_t n, size_t size)
     return p;
 }
 
-long filesize(char *name)
+int filesize(const char *name)
 {
     struct stat s;
-    stat(name, &s);
+    if (stat(name, &s) != 0) {
+        return 0;
+    };
     return s.st_size;
 }
 
-long is_file(char *name)
+int is_file(const char *name)
 {
     struct stat s;
-    stat(name, &s);
+    if (stat(name, &s) != 0) {
+        return 0;
+    };
     return S_ISREG(s.st_mode);
 }
 
 long is_dir(char *name)
 {
     struct stat s;
-    stat(name, &s);
+    if (stat(name, &s) != 0) {
+        return 0;
+    };
     return S_ISDIR(s.st_mode);
 }
 
