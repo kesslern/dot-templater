@@ -31,9 +31,7 @@ void substitution_saver(char *key, char *value)
 void free_substitutions(substitution *sub)
 {
     if (sub != NULL) {
-        if (sub->next != NULL) {
-            free_substitutions(sub->next);
-        }
+        free_substitutions(sub->next);
         free(sub);
     }
 }
@@ -79,9 +77,8 @@ void substitute_file(const char *input, const char *output)
 {
     FILE *in, *out;
     char *line = NULL;
-    char *new_line = NULL;
+    char *new_line;
     size_t len = 0;
-    ssize_t nread;
 
     in = fopen(input, "r");
     out = fopen(output, "w");
@@ -91,9 +88,8 @@ void substitute_file(const char *input, const char *output)
         exit(EXIT_FAILURE);
     }
 
-    while ((nread = getline(&line, &len, in)) != -1) {
+    while (getline(&line, &len, in) != -1) {
         new_line = substitute_line(line);
-        printf("%s", new_line);
         fwrite(new_line, sizeof(char), strlen(new_line), out);
         free(new_line);
     }
@@ -158,13 +154,9 @@ int main(int argc, char **argv)
     first = safe_calloc(1, sizeof(substitution));
     parse_configuration(buffer, config);
 
-    // char *template = read_file(argv[2]);
-    // substitute_file(argv[1], "out");
-
     nftw(argv[2], &walker, 15, 0);
-    printf("ok\n");
     free(buffer);
-    // free(template);
+
     free_substitutions(first);
     exit(EXIT_SUCCESS);
 }
