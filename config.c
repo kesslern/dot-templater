@@ -1,33 +1,28 @@
 #define _GNU_SOURCE
+#include "config.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "config.h"
+#define IS_COMMENT(x) (*(x) != '#')
 
 void substitution_parser(char *str, config *config)
 {
-    static int key_saved = false;
-    static int value_saved = false;
-    static char *current_key;
-    static char *current_value;
+    static char *current_key = NULL;
+    static char *current_value = NULL;
 
     if (str != NULL) {
-        if (!key_saved) {
+        if (current_key != NULL) {
             current_key = str;
-            key_saved = true;
         } else {
-            if (!value_saved) {
+            if (current_value != NULL) {
                 current_value = str;
-                value_saved = true;
             } else {
                 *(str - 1) = '=';
             }
         }
     } else {
         (*config->substitution_saver)(current_key, current_value);
-        key_saved = false;
-        value_saved = false;
         current_key = NULL;
         current_value = NULL;
     }
@@ -50,7 +45,7 @@ void tokenizer(char *str, char *delims, void (*handler)(char *, config *),
 
 void parse_line(char *str, config *config)
 {
-    if (str != NULL && *str != '#') {
+    if (str != NULL && !IS_COMMENT(str)) {
         tokenizer(str, "=", &substitution_parser, config);
     }
 }
