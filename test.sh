@@ -1,2 +1,2 @@
 #!/bin/bash
-valgrind ./dot-templater rules dotfiles dest
+valgrind --track-origins=yes ./dot-templater rules dotfiles dest
