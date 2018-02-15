@@ -8,6 +8,10 @@
 #include "config.h"
 #include "util.h"
 
+/**
+ * Stores key/value pairs of strings that will be substituted in the copied
+ * files in a single-linked list.
+ */
 typedef struct substitution_t {
     char *key;
     char *value;
@@ -16,6 +20,9 @@ typedef struct substitution_t {
 
 substitution *first;
 
+/**
+ * Callback function for saving a substitution.
+ */
 void substitution_saver(char *key, char *value)
 {
     static substitution *current = NULL;
@@ -28,6 +35,9 @@ void substitution_saver(char *key, char *value)
     current = current->next;
 }
 
+/**
+ * Frees all allocated substitutions in the list.
+ */
 void free_substitutions(substitution *sub)
 {
     if (sub != NULL) {
@@ -36,6 +46,10 @@ void free_substitutions(substitution *sub)
     }
 }
 
+/**
+ * Find one occurance of key in str and replace with value in a new string.
+ * TODO: Replace all occurrances.
+ */
 char *strsub(const char *str, const char *key, const char *value)
 {
     int occurance_len = strstr(str, key) - str;
@@ -53,18 +67,26 @@ char *strsub(const char *str, const char *key, const char *value)
     return new_str;
 }
 
+/**
+ * Run substitutions through the provided line and provide a new string with the
+ * result.
+ */
 char *substitute_line(char *line)
 {
     substitution *current = first;
     char *result = NULL;
 
+    /* Make each available substitution in the line. */
     while (current != NULL && current->key != NULL) {
+        // TODO: strstr is called here and in strsub
+        // TODO: can't handle multiple substitutions on one line
         if (strstr(line, current->key) != NULL) {
             result = strsub(line, current->key, current->value);
         }
         current = current->next;
     }
 
+    /* No substitutions? Create a copy of the original string. */
     if (result == NULL) {
         result = safe_calloc(strlen(line), sizeof(char) + 1);
         memcpy(result, line, sizeof(char) * (strlen(line) + 1));
@@ -73,6 +95,10 @@ char *substitute_line(char *line)
     return result;
 }
 
+/**
+ * Reads the file at path [input] and writes it to [output], substituting
+ * values on each line.
+ */
 void substitute_file(const char *input, const char *output)
 {
     FILE *in, *out;
@@ -102,6 +128,12 @@ void substitute_file(const char *input, const char *output)
 char *source_dir;
 char *dest_dir;
 
+/**
+ * Callback function for nftw. For directories, it is ensured that a
+ * corresponding directory in the destination path exists. Files are copied to
+ * the destination after substituting values. Uses the global values
+ * [source_dir] and [dest_dir].
+ */
 int walker(const char *fpath, __attribute__((unused)) const struct stat *sb,
            __attribute__((unused)) int flags, struct FTW *ftwbuf)
 {
@@ -154,9 +186,11 @@ int main(int argc, char **argv)
     first = safe_calloc(1, sizeof(substitution));
     parse_configuration(buffer, config);
 
+    /* Walk the source directory and save in the destination directory. */
     nftw(argv[2], &walker, 15, 0);
-    free(buffer);
 
+    /* Cleanup. */
+    free(buffer);
     free_substitutions(first);
     exit(EXIT_SUCCESS);
 }
