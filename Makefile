@@ -1,7 +1,16 @@
-all: format build test
+all: format dottemplater test
 
-build:
-	gcc -std=c11 -O2 -Wall -Wextra -Wpedantic -Werror util.c config.c dottemplater.c -o dot-templater
+dottemplater: config.o util.o dottemplater.o
+	gcc util.o config.o dottemplater.o -o dot-templater
+
+config.o:
+	gcc -std=c11 -O2 -Wall -Wextra -Wpedantic -Werror -c config.c
+
+util.o:
+	gcc -std=c11 -O2 -Wall -Wextra -Wpedantic -Werror -c util.c
+
+dottemplater.o:
+	gcc -std=c11 -O2 -Wall -Wextra -Wpedantic -Werror -c dottemplater.c
 
 
 format:
