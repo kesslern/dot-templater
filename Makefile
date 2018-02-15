@@ -1,29 +1,42 @@
-all: format dottemplater test
+EXECFILE=dot-templater
+CFLAGS=-std=c11 -O2 -Wall -Wextra -Wpedantic -Werror
+SRCS:=$(wildcard *.c)
+OBJS:=$(SRCS:.c=.o )
 
-dottemplater: config.o util.o dottemplater.o
-	gcc util.o config.o dottemplater.o -o dot-templater
+CLANG_FORMAT_OPTS="{\
+		BasedOnStyle: llvm,\
+		IndentWidth: 4,\
+		AllowShortFunctionsOnASingleLine: None,\
+		KeepEmptyLinesAtTheStartOfBlocks: false,\
+		IndentCaseLabels: false,\
+		BreakBeforeBraces: Linux}"
 
-config.o:
-	gcc -std=c11 -O2 -Wall -Wextra -Wpedantic -Werror -c config.c
+CLANG_TIDY_OPTS=\
+	readability-braces-around-statements,misc-macro-parentheses
 
-util.o:
-	gcc -std=c11 -O2 -Wall -Wextra -Wpedantic -Werror -c util.c
-
-dottemplater.o:
-	gcc -std=c11 -O2 -Wall -Wextra -Wpedantic -Werror -c dottemplater.c
-
+all: format build test
 
 format:
-	clang-format -style="{BasedOnStyle: llvm, IndentWidth: 4, AllowShortFunctionsOnASingleLine: None, KeepEmptyLinesAtTheStartOfBlocks: false, IndentCaseLabels: false, BreakBeforeBraces: Linux}" -i *.c
+	clang-format \
+		-style=$(CLANG_FORMAT_OPTS)\
+		-i $(SRCS)
 
 	clang-tidy \
-	-fix \
-	-fix-errors \
-	-header-filter=.* \
-	--checks=readability-braces-around-statements,misc-macro-parentheses \
-	*.c \
-	-- -I.
+		-fix \
+		-fix-errors \
+		-header-filter=.* \
+		--checks=$(CLANG_TIDY_OPTS) \
+		*.c \
+		-- -I .
+
+%.o : %.c
+	gcc $(CFLAGS) -c $< -o $@
+
+build: $(OBJS)
+	gcc $(OBJS) -o $(EXECFILE)
 
 test:
-	valgrind --track-origins=yes ./dot-templater rules dotfiles dest
+	valgrind --track-origins=yes ./$(EXECFILE) rules dotfiles dest
 
+clean:
+	rm -f $(OBJS)
