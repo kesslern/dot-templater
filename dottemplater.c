@@ -29,6 +29,7 @@ void substitution_saver(char *key, char *value)
     if (current == NULL) {
         current = first;
     }
+    printf("Saving substitution %s=%s\n", key, value);
     current->key = key;
     current->value = value;
     current->next = safe_calloc(1, sizeof(substitution));
@@ -48,7 +49,6 @@ void free_substitutions(substitution *sub)
 
 /**
  * Find one occurance of key in str and replace with value in a new string.
- * TODO: Replace all occurrances.
  */
 char *strsub(const char *str, const char *key, const char *value)
 {
@@ -73,15 +73,18 @@ char *strsub(const char *str, const char *key, const char *value)
  */
 char *substitute_line(char *line)
 {
+    // TODO: Make this method more readable
     substitution *current = first;
-    char *result = NULL;
+    char *result = safe_calloc(strlen(line) + 1, sizeof(char));
+    memcpy(result, line, strlen(line) + 1);
 
     /* Make each available substitution in the line. */
     while (current != NULL && current->key != NULL) {
         // TODO: strstr is called here and in strsub
-        // TODO: can't handle multiple substitutions on one line
-        if (strstr(line, current->key) != NULL) {
-            result = strsub(line, current->key, current->value);
+        while (strstr(result, current->key) != NULL) {
+            char *new_line = strsub(result, current->key, current->value);
+            free(result);
+            result = new_line;
         }
         current = current->next;
     }
