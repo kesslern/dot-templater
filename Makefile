@@ -1,6 +1,14 @@
 .PHONY: test
 
 EXECFILE=dot-templater
+TEST_RULES=test/rules
+TEST_DOTFILES=test/dotfiles
+TEST_DEST_DIR=test/dest
+TEST_EXPECTED_DIR=test/expected
+
+DIFF_FLAGS=-qNr
+VALGRIND_FLAGS=--track-origins=yes --leak-check=full --show-leak-kinds=all --error-exitcode=1
+
 CFLAGS=-std=c11 -O2 -Wall -Wextra -Wpedantic -Werror
 SRCS:=$(wildcard *.c)
 OBJS:=$(SRCS:.c=.o )
@@ -38,8 +46,9 @@ build: $(OBJS)
 	gcc $(OBJS) -o $(EXECFILE)
 
 test:
-	valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./$(EXECFILE) test/rules test/dotfiles test/dest
-	diff -qNr test/dest test/expected
+	valgrind $(VALGRIND_FLAGS) ./$(EXECFILE) $(TEST_RULES) $(TEST_DOTFILES) $(TEST_DEST_DIR)
+	diff $(DIFF_FLAGS) $(TEST_DEST_DIR) $(TEST_EXPECTED_DIR)
 
 clean:
 	rm -f $(OBJS)
+	find $(TEST_DEST_DIR) -mindepth 1 -delete
