@@ -1,10 +1,11 @@
 #define _GNU_SOURCE
-#include "config.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define IS_COMMENT(x) (*(x) != '#')
+#include "config.h"
+
+#define IS_COMMENT(x) (*(x) == '#')
 
 void substitution_parser(char *str, config *config)
 {
@@ -12,10 +13,10 @@ void substitution_parser(char *str, config *config)
     static char *current_value = NULL;
 
     if (str != NULL) {
-        if (current_key != NULL) {
+        if (current_key == NULL) {
             current_key = str;
         } else {
-            if (current_value != NULL) {
+            if (current_value == NULL) {
                 current_value = str;
             } else {
                 *(str - 1) = '=';
