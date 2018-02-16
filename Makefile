@@ -1,3 +1,5 @@
+.PHONY: test
+
 EXECFILE=dot-templater
 CFLAGS=-std=c11 -O2 -Wall -Wextra -Wpedantic -Werror
 SRCS:=$(wildcard *.c)
@@ -14,7 +16,7 @@ CLANG_FORMAT_OPTS="{\
 CLANG_TIDY_OPTS=\
 	readability-braces-around-statements,misc-macro-parentheses
 
-all: format build test
+all: format build
 
 format:
 	clang-format \
@@ -36,7 +38,8 @@ build: $(OBJS)
 	gcc $(OBJS) -o $(EXECFILE)
 
 test:
-	valgrind --track-origins=yes ./$(EXECFILE) rules dotfiles dest
+	valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./$(EXECFILE) test/rules test/dotfiles test/dest
+	diff -qNr test/dest test/expected
 
 clean:
 	rm -f $(OBJS)

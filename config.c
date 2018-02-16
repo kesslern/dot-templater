@@ -9,6 +9,7 @@
 
 void substitution_parser(char *str, config *config)
 {
+    // TODO: Handle case where the value is all '=' characters
     static char *current_key = NULL;
     static char *current_value = NULL;
 

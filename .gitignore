@@ -1,2 +1,4 @@
+test/dest/*
 dot-templater
 *.o
+vgcore.*

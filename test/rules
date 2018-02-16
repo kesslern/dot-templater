@@ -1,0 +1,8 @@
+# Comments can be made with the octothorpe 
+TEST1=cat
+
+TEST2=a====
+VAR WITH SPACES=Four equals: 
+
+# More comments...
+
