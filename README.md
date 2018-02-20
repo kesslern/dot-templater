@@ -24,7 +24,7 @@ dot-templater RULES SRC_DIR DEST_DIR
 Copies files from `SRC_DIR` to `DEST_DIR` according to rules in `RULES`.
 
 ### Rules Format
-String subsitutions are defined by a key and value separated by the first occurance of a `=` character. Any line beginning with a `#` is ignored. A rules file is defined as
+String subsitutions are defined by a key and value separated by the first occurance of `=`. Any line beginning with `#` is ignored. A rules file is defined as
 ```
 #
 # String substitions:
@@ -49,8 +49,7 @@ Code is formatted with `make format`.
 
 ### Testing
 
-`make test` copies the files in `test/dotfiles` to `test/dest` according to `testf/rules` and compares with `test/expected`. The executable is analyzed with valgrind to prevent memory leaks. Valgrind must report "no leaks possible".
-
+`make test` copies the files in `test/dotfiles` to `test/dest` according to `test/rules` and compares with `test/expected`. The executable is analyzed with valgrind to prevent memory leaks. Valgrind must report "no leaks possible".
 
 ## License
 
