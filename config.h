@@ -2,6 +2,7 @@
 
 typedef struct parse_config_t {
   void (*substitution_saver)(char *, char *);
+  void (*feature_saver)(char *);
 } config;
 
 /**

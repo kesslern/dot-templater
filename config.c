@@ -15,6 +15,8 @@ void parse_line(char *str, config *config)
         if (split != NULL) {
             *split = '\0';
             (*config->substitution_saver)(str, ++split);
+        } else {
+            (*config->feature_saver)(str);
         }
     }
 }

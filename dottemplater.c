@@ -18,7 +18,32 @@ typedef struct substitution_t {
     struct substitution_t *next;
 } substitution;
 
-substitution *first;
+substitution *first_substitution;
+
+/**
+ * Stores the name of an enabled feature.
+ */
+typedef struct feature_t {
+    char *feature_name;
+    struct feature_t *next;
+} feature;
+
+feature *first_feature;
+
+/**
+ * Callback function for saving the name of an enabled feature.
+ */
+void feature_saver(char *feature)
+{
+    static struct feature_t *current = NULL;
+    if (current == NULL) {
+        current = first_feature;
+    }
+    printf("Saving feature %s\n", feature);
+    current->feature_name = feature;
+    current->next = safe_calloc(1, sizeof(struct feature_t));
+    current = current->next;
+}
 
 /**
  * Callback function for saving a substitution.
@@ -27,13 +52,25 @@ void substitution_saver(char *key, char *value)
 {
     static substitution *current = NULL;
     if (current == NULL) {
-        current = first;
+        current = first_substitution;
     }
     printf("Saving substitution %s=%s\n", key, value);
     current->key = key;
     current->value = value;
     current->next = safe_calloc(1, sizeof(substitution));
     current = current->next;
+    current->next = NULL;
+}
+
+/**
+ * Frees all allocated features in the list.
+ */
+void free_features(feature *f)
+{
+    if (f != NULL) {
+        free_features(f->next);
+        free(f);
+    }
 }
 
 /**
@@ -74,7 +111,7 @@ char *strsub(const char *str, const char *key, const char *value)
 char *substitute_line(char *line)
 {
     // TODO: Make this method more readable
-    substitution *current = first;
+    substitution *current = first_substitution;
     char *result = safe_calloc(strlen(line) + 1, sizeof(char));
     memcpy(result, line, strlen(line) + 1);
 
@@ -91,7 +128,7 @@ char *substitute_line(char *line)
 
     /* No substitutions? Create a copy of the original string. */
     if (result == NULL) {
-        result = safe_calloc(strlen(line), sizeof(char) + 1);
+        result = safe_calloc(strlen(line) + 1, sizeof(char));
         memcpy(result, line, sizeof(char) * (strlen(line) + 1));
     }
 
@@ -200,10 +237,13 @@ int main(int argc, char **argv)
     source_dir = argv[2];
     dest_dir = argv[3];
 
+    first_substitution = safe_calloc(1, sizeof(substitution));
+    first_feature = safe_calloc(1, sizeof(feature));
+
     /* Parse rules file with variable substitutions. */
     char *buffer = read_file(argv[1]);
-    config config = {.substitution_saver = &substitution_saver};
-    first = safe_calloc(1, sizeof(substitution));
+    config config = {.substitution_saver = &substitution_saver,
+                     .feature_saver = &feature_saver};
     parse_configuration(buffer, config);
 
     /* Walk the source directory and save in the destination directory. */
@@ -211,6 +251,7 @@ int main(int argc, char **argv)
 
     /* Cleanup. */
     free(buffer);
-    free_substitutions(first);
+    free_substitutions(first_substitution);
+    free_features(first_feature);
     exit(EXIT_SUCCESS);
 }
