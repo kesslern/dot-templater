@@ -1,8 +1,11 @@
-# Comments can be made with the octothorpe 
-TEST1=cat
+# Comments can be made with the octothorpe
+# Test multiple newlines
 
-TEST2=a====
-VAR WITH SPACES=Four equals: 
 
+# Test a basic substitution
+BASIC=cat
+
+4 EQUALS=====
+VAR WITH SPACES=variable
+EMPTY VARIABLE=
 # More comments...
-
