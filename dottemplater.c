@@ -159,24 +159,41 @@ int walker(const char *fpath, __attribute__((unused)) const struct stat *sb,
     return 0;
 }
 
+void print_help()
+{
+    printf("usage: dot-templater RULES SRC_DIR DEST_DIR\n");
+    printf("\n");
+    printf("Copies files in SRC_DIR to DEST_DIR using rules in RULES.\n");
+    printf("\n");
+    printf("Rules configuration:\n");
+    printf("  Keys and values are separated by the first occurance of '=' in a "
+           "line.\n");
+    printf("  In each copied file, each key is replaced by the associated "
+           "value.\n");
+}
+
 int main(int argc, char **argv)
 {
     if (argc != 4) {
-        printf("Expected 3 arguments.\n");
+        print_help();
         exit(EXIT_FAILURE);
     }
 
     if (!is_file(argv[1])) {
-        printf("Expected first argument to be a rules file.\n");
+        printf("Expected first argument to be a rules file.\n\n");
+        print_help();
+        exit(EXIT_FAILURE);
     }
 
     if (!is_dir(argv[2])) {
-        printf("Expected second argument to be a dotfiles file.\n");
+        printf("Expected second argument to be a dotfiles directory.\n\n");
+        print_help();
         exit(EXIT_FAILURE);
     }
 
     if (!is_dir(argv[3])) {
-        printf("Expected third argument to be a destination directory.\n");
+        printf("Expected third argument to be a destination directory.\n\n");
+        print_help();
         exit(EXIT_FAILURE);
     }
 
