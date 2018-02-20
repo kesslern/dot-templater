@@ -1,7 +1,7 @@
 # dot-templater
 A small, portable program intended for templating dotfiles across multiple systems.
 
-### Inspiration
+## Purpose
 Many developers store their dotfiles in git repositories, allowing them to share their dotfiles across multiple computers. When one system requires a slight change in configuration, a branch is created for those differences. Any furcher changes intended for the main branch must be merged without bringing in branch-specific changes . This becomes more complicated when multiple features are involved. Different configuration may be required to show battery indicators on portable systems, use larger fonts on HiDPI systems, show Wifi indicators where necessary, or change other values depending on operating system. `dot-templater` intends to solve these problems.
 
 ## Features
