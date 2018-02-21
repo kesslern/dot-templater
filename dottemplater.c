@@ -135,6 +135,21 @@ char *substitute_line(char *line)
     return result;
 }
 
+int is_feature_enabled(feature *features, char *feature)
+{
+    char *last_char = feature + strlen(feature) - 1;
+    if ((*last_char == '\n')) {
+        *last_char = '\0';
+    }
+    if (features->feature_name != NULL) {
+        if (strcmp(features->feature_name, feature) == 0) {
+            return true;
+        }
+        return is_feature_enabled(features->next, feature);
+    }
+    return false;
+}
+
 /**
  * Reads the file at path [input] and writes it to [output], substituting
  * values on each line.
@@ -145,6 +160,7 @@ void substitute_file(const char *input, const char *output)
     char *line = NULL;
     char *new_line;
     size_t len = 0;
+    int in_disabled_feature = false;
 
     in = fopen(input, "r");
     out = fopen(output, "w");
@@ -155,9 +171,18 @@ void substitute_file(const char *input, const char *output)
     }
 
     while (getline(&line, &len, in) != -1) {
-        new_line = substitute_line(line);
-        fwrite(new_line, sizeof(char), strlen(new_line), out);
-        free(new_line);
+        if (strncmp(line, "### ", 4) == 0) {
+            if (in_disabled_feature == true) {
+                in_disabled_feature = false;
+            } else {
+                in_disabled_feature =
+                    !is_feature_enabled(first_feature, line + 4);
+            }
+        } else if (in_disabled_feature == false) {
+            new_line = substitute_line(line);
+            fwrite(new_line, sizeof(char), strlen(new_line), out);
+            free(new_line);
+        }
     }
 
     free(line);

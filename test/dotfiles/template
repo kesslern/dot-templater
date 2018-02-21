@@ -3,3 +3,10 @@ Are BASICs really better than dogs?
 "VAR WITH SPACES"s can be empty, i.e. "EMPTY VARIABLE"
 
 Weird equals stuff can happen: 4 EQUALS
+
+### FEATURE1
+this should appear
+### FEATURE1
+### OTHER FEATURE
+this should *NOT* appear
+### OTHER FEATURE
