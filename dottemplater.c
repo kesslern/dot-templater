@@ -6,19 +6,8 @@
 #include <string.h>
 
 #include "config.h"
+#include "substitutions.h"
 #include "util.h"
-
-/**
- * Stores key/value pairs of strings that will be substituted in the copied
- * files in a single-linked list.
- */
-typedef struct substitution_t {
-    char *key;
-    char *value;
-    struct substitution_t *next;
-} substitution;
-
-substitution *first_substitution = NULL;
 
 /**
  * Stores the name of an enabled feature.
@@ -46,23 +35,6 @@ void feature_saver(char *feature)
 }
 
 /**
- * Callback function for saving a substitution.
- */
-void substitution_saver(char *key, char *value)
-{
-    static substitution *current = NULL;
-    if (current == NULL) {
-        current = first_substitution = safe_calloc(1, sizeof(substitution));
-    }
-    printf("Saving substitution %s=%s\n", key, value);
-    current->key = key;
-    current->value = value;
-    current->next = safe_calloc(1, sizeof(substitution));
-    current = current->next;
-    current->next = NULL;
-}
-
-/**
  * Frees all allocated features in the list.
  */
 void free_features(feature *f)
@@ -71,48 +43,6 @@ void free_features(feature *f)
         free_features(f->next);
         free(f);
     }
-}
-
-/**
- * Frees all allocated substitutions in the list.
- */
-void free_substitutions(substitution *sub)
-{
-    if (sub != NULL) {
-        free_substitutions(sub->next);
-        free(sub);
-    }
-}
-
-/**
- * Run substitutions through the provided line and provide a new string with the
- * result.
- */
-char *substitute_line(char *line)
-{
-    // TODO: Make this method more readable
-    substitution *current = first_substitution;
-    char *result = safe_calloc(strlen(line) + 1, sizeof(char));
-    memcpy(result, line, strlen(line) + 1);
-
-    /* Make each available substitution in the line. */
-    while (current != NULL && current->key != NULL) {
-        // TODO: strstr is called here and in strsub
-        while (strstr(result, current->key) != NULL) {
-            char *new_line = strsub(result, current->key, current->value);
-            free(result);
-            result = new_line;
-        }
-        current = current->next;
-    }
-
-    /* No substitutions? Create a copy of the original string. */
-    if (result == NULL) {
-        result = safe_calloc(strlen(line) + 1, sizeof(char));
-        memcpy(result, line, sizeof(char) * (strlen(line) + 1));
-    }
-
-    return result;
 }
 
 bool is_feature_enabled(feature *features, char *feature)
@@ -254,7 +184,7 @@ int main(int argc, char **argv)
 
     /* Cleanup. */
     free(buffer);
-    free_substitutions(first_substitution);
+    free_substitutions(free_substitutions);
     free_features(first_feature);
     exit(EXIT_SUCCESS);
 }
