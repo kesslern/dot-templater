@@ -85,26 +85,6 @@ void free_substitutions(substitution *sub)
 }
 
 /**
- * Find one occurance of key in str and replace with value in a new string.
- */
-char *strsub(const char *str, const char *key, const char *value)
-{
-    int occurance_len = strstr(str, key) - str;
-    int value_len = strlen(value);
-    int key_len = strlen(key);
-    int str_len = strlen(str);
-    int new_len = str_len + value_len - key_len;
-    char *new_str = safe_calloc(new_len + 1, sizeof(char));
-
-    memcpy(new_str, str, occurance_len);
-    memcpy(new_str + occurance_len, value, value_len);
-    memcpy(new_str + occurance_len + value_len, str + occurance_len + key_len,
-           str_len - occurance_len - key_len);
-
-    return new_str;
-}
-
-/**
  * Run substitutions through the provided line and provide a new string with the
  * result.
  */
