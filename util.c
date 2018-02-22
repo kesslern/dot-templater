@@ -1,7 +1,10 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+
+#include "util.h"
 
 void *safe_calloc(size_t n, size_t size)
 {
@@ -22,7 +25,7 @@ int filesize(const char *name)
     return s.st_size;
 }
 
-int is_file(const char *name)
+bool is_file(const char *name)
 {
     struct stat s;
     if (stat(name, &s) != 0) {
@@ -31,7 +34,7 @@ int is_file(const char *name)
     return S_ISREG(s.st_mode);
 }
 
-long is_dir(char *name)
+bool is_dir(const char *name)
 {
     struct stat s;
     if (stat(name, &s) != 0) {
@@ -40,7 +43,7 @@ long is_dir(char *name)
     return S_ISDIR(s.st_mode);
 }
 
-char *read_file(char *filename)
+char *read_file(const char *filename)
 {
     FILE *file = fopen(filename, "rb");
     char *file_buffer;

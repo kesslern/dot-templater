@@ -115,7 +115,7 @@ char *substitute_line(char *line)
     return result;
 }
 
-int is_feature_enabled(feature *features, char *feature)
+bool is_feature_enabled(feature *features, char *feature)
 {
     char *last_char = feature + strlen(feature) - 1;
     if (*last_char == '\n') {
@@ -130,11 +130,16 @@ int is_feature_enabled(feature *features, char *feature)
     return false;
 }
 
+bool is_feature_enable_or_disable(char *line)
+{
+    return strncmp(line, "### ", 4) == 0;
+}
+
 /**
  * Reads the file at path [input] and writes it to [output], substituting
  * values on each line.
  */
-void substitute_file(const char *input, const char *output)
+void template_file(const char *input, const char *output)
 {
     FILE *in, *out;
     char *line = NULL;
@@ -151,14 +156,14 @@ void substitute_file(const char *input, const char *output)
     }
 
     while (getline(&line, &len, in) != -1) {
-        if (strncmp(line, "### ", 4) == 0) {
-            if (in_disabled_feature == true) {
+        if (is_feature_enable_or_disable(line)) {
+            if (in_disabled_feature) {
                 in_disabled_feature = false;
             } else {
                 in_disabled_feature =
                     !is_feature_enabled(first_feature, line + 4);
             }
-        } else if (in_disabled_feature == false) {
+        } else if (!in_disabled_feature) {
             new_line = substitute_line(line);
             fwrite(new_line, sizeof(char), strlen(new_line), out);
             free(new_line);
@@ -190,7 +195,7 @@ int walker(const char *fpath, __attribute__((unused)) const struct stat *sb,
             mkdir(dest_file, 0700);
         }
     } else {
-        substitute_file(fpath, dest_file);
+        template_file(fpath, dest_file);
     }
 
     free(dest_file);
