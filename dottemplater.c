@@ -138,7 +138,7 @@ char *substitute_line(char *line)
 int is_feature_enabled(feature *features, char *feature)
 {
     char *last_char = feature + strlen(feature) - 1;
-    if ((*last_char == '\n')) {
+    if (*last_char == '\n') {
         *last_char = '\0';
     }
     if (features->feature_name != NULL) {
