@@ -18,7 +18,7 @@ typedef struct substitution_t {
     struct substitution_t *next;
 } substitution;
 
-substitution *first_substitution;
+substitution *first_substitution = NULL;
 
 /**
  * Stores the name of an enabled feature.
@@ -28,7 +28,7 @@ typedef struct feature_t {
     struct feature_t *next;
 } feature;
 
-feature *first_feature;
+feature *first_feature = NULL;
 
 /**
  * Callback function for saving the name of an enabled feature.
@@ -37,7 +37,7 @@ void feature_saver(char *feature)
 {
     static struct feature_t *current = NULL;
     if (current == NULL) {
-        current = first_feature;
+        current = first_feature = safe_calloc(1, sizeof(struct feature_t));
     }
     printf("Saving feature %s\n", feature);
     current->feature_name = feature;
@@ -52,7 +52,7 @@ void substitution_saver(char *key, char *value)
 {
     static substitution *current = NULL;
     if (current == NULL) {
-        current = first_substitution;
+        current = first_substitution = safe_calloc(1, sizeof(substitution));
     }
     printf("Saving substitution %s=%s\n", key, value);
     current->key = key;
@@ -180,23 +180,19 @@ char *dest_dir;
  * [source_dir] and [dest_dir].
  */
 int walker(const char *fpath, __attribute__((unused)) const struct stat *sb,
-           __attribute__((unused)) int flags, struct FTW *ftwbuf)
+           __attribute__((unused)) int flags,
+           __attribute__((unused)) struct FTW *ftwbuf)
 {
     char *dest_file = strsub(fpath, source_dir, dest_dir);
-    printf("%s | %s | %s ", fpath, fpath + ftwbuf->base, dest_file);
+
     if (is_dir(fpath)) {
-        printf("directory ");
-        if (is_dir(dest_file)) {
-            printf("dest exists ");
-        } else {
-            printf("dest does not exist ");
+        if (!is_dir(dest_file)) {
             mkdir(dest_file, 0700);
         }
     } else {
         substitute_file(fpath, dest_file);
     }
 
-    printf("\n");
     free(dest_file);
     return 0;
 }
@@ -241,9 +237,6 @@ int main(int argc, char **argv)
 
     source_dir = argv[2];
     dest_dir = argv[3];
-
-    first_substitution = safe_calloc(1, sizeof(substitution));
-    first_feature = safe_calloc(1, sizeof(feature));
 
     /* Parse rules file with variable substitutions. */
     char *buffer = read_file(argv[1]);
