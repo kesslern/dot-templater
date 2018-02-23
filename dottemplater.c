@@ -6,64 +6,9 @@
 #include <string.h>
 
 #include "config.h"
+#include "feature.h"
 #include "substitutions.h"
 #include "util.h"
-
-/**
- * Stores the name of an enabled feature.
- */
-typedef struct feature_t {
-    char *feature_name;
-    struct feature_t *next;
-} feature;
-
-feature *first_feature = NULL;
-
-/**
- * Callback function for saving the name of an enabled feature.
- */
-void feature_saver(char *feature)
-{
-    static struct feature_t *current = NULL;
-    if (current == NULL) {
-        current = first_feature = safe_calloc(1, sizeof(struct feature_t));
-    }
-    printf("Saving feature %s\n", feature);
-    current->feature_name = feature;
-    current->next = safe_calloc(1, sizeof(struct feature_t));
-    current = current->next;
-}
-
-/**
- * Frees all allocated features in the list.
- */
-void free_features(feature *f)
-{
-    if (f != NULL) {
-        free_features(f->next);
-        free(f);
-    }
-}
-
-bool is_feature_enabled(feature *features, char *feature)
-{
-    char *last_char = feature + strlen(feature) - 1;
-    if (*last_char == '\n') {
-        *last_char = '\0';
-    }
-    if (features->feature_name != NULL) {
-        if (strcmp(features->feature_name, feature) == 0) {
-            return true;
-        }
-        return is_feature_enabled(features->next, feature);
-    }
-    return false;
-}
-
-bool is_feature_enable_or_disable(char *line)
-{
-    return strncmp(line, "### ", 4) == 0;
-}
 
 /**
  * Reads the file at path [input] and writes it to [output], substituting
@@ -90,8 +35,7 @@ void template_file(const char *input, const char *output)
             if (in_disabled_feature) {
                 in_disabled_feature = false;
             } else {
-                in_disabled_feature =
-                    !is_feature_enabled(first_feature, line + 4);
+                in_disabled_feature = !is_feature_enabled(line + 4);
             }
         } else if (!in_disabled_feature) {
             new_line = substitute_line(line);
@@ -184,7 +128,7 @@ int main(int argc, char **argv)
 
     /* Cleanup. */
     free(buffer);
-    free_substitutions(free_substitutions);
-    free_features(first_feature);
+    free_substitutions();
+    free_features();
     exit(EXIT_SUCCESS);
 }
