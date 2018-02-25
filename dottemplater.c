@@ -4,11 +4,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include "config.h"
 #include "feature.h"
 #include "substitutions.h"
 #include "util.h"
+
+/* These have to be global because they're used by the nftw callback. */
+char *source_dir;
+char *dest_dir;
 
 /**
  * Reads the file at path [input] and writes it to [output], substituting
@@ -49,22 +54,19 @@ void template_file(const char *input, const char *output)
     fclose(out);
 }
 
-char *source_dir;
-char *dest_dir;
-
 /**
  * Callback function for nftw. For directories, it is ensured that a
  * corresponding directory in the destination path exists. Files are copied to
  * the destination after substituting values. Uses the global values
  * [source_dir] and [dest_dir].
  */
-int walker(const char *fpath, __attribute__((unused)) const struct stat *sb,
+int walker(const char *fpath, const struct stat *sb,
            __attribute__((unused)) int flags,
            __attribute__((unused)) struct FTW *ftwbuf)
 {
     char *dest_file = strsub(fpath, source_dir, dest_dir);
 
-    if (is_dir(fpath)) {
+    if (S_ISDIR(sb->st_mode)) {
         if (!is_dir(dest_file)) {
             mkdir(dest_file, 0700);
         }
