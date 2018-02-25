@@ -46,6 +46,8 @@ build: $(OBJS)
 	gcc $(OBJS) -o $(EXECFILE)
 
 test:
+	rm -rf $(TEST_DEST_DIR)
+	mkdir $(TEST_DEST_DIR)
 	valgrind $(VALGRIND_FLAGS) ./$(EXECFILE) $(TEST_RULES) $(TEST_DOTFILES) $(TEST_DEST_DIR)
 	diff $(DIFF_FLAGS) $(TEST_DEST_DIR) $(TEST_EXPECTED_DIR)
 
