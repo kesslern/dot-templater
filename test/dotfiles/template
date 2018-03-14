@@ -10,3 +10,9 @@ this should appear
 ### OTHER FEATURE
 this should *NOT* appear
 ### OTHER FEATURE
+    ### FEATURE1
+    this should appear (test indentation)
+    ### FEATURE1
+    ### OTHER FEATURE
+    this should *NOT* appear (test indentation)
+    ### OTHER FEATURE

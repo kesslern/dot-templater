@@ -1,11 +1,11 @@
 /** Callback function for saving the name of an enabled feature. */
 void feature_saver(char *feature);
 
-/** TODO */
+/** Release all features from memory. */
 void free_features();
 
-/** TODO */
+/** Determines if a given feature is enabled. */
 bool is_feature_enabled(char *feature);
 
-/** TODO */
+/** Determines if a line is a feature enable or disable line. */
 bool is_feature_enable_or_disable(char *line);
