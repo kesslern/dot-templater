@@ -1,5 +1,6 @@
 #include <regex.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -66,8 +67,11 @@ bool is_feature_enabled(char *feature)
 bool is_feature_enable_or_disable(char *line)
 {
     regex_t r;
-    regcomp(&r, "^[:space:]### .*$", REG_EXTENDED | REG_NOSUB);
+    regcomp(&r, "^\\s*### .*$", REG_EXTENDED | REG_NOSUB);
     bool ret = regexec(&r, line, 0, 0, 0) == 0;
+    if (ret) {
+        printf("Ya: %s\n", line);
+    }
     regfree(&r);
     return ret;
 }

@@ -40,7 +40,8 @@ void template_file(const char *input, const char *output)
             if (in_disabled_feature) {
                 in_disabled_feature = false;
             } else {
-                in_disabled_feature = !is_feature_enabled(line + 4);
+                in_disabled_feature =
+                    !is_feature_enabled(strchr(line, '#') + 4);
             }
         } else if (!in_disabled_feature) {
             new_line = substitute_line(line);
