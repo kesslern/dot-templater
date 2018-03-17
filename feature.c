@@ -1,3 +1,4 @@
+#include <regex.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -64,5 +65,9 @@ bool is_feature_enabled(char *feature)
 
 bool is_feature_enable_or_disable(char *line)
 {
-    return strncmp(line, "### ", 4) == 0;
+    regex_t r;
+    regcomp(&r, "^[:space:]### .*$", REG_EXTENDED | REG_NOSUB);
+    bool ret = regexec(&r, line, 0, 0, 0) == 0;
+    regfree(&r);
+    return ret;
 }
