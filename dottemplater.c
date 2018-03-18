@@ -90,6 +90,15 @@ void print_help()
            "line.\n");
     printf("  In each copied file, each key is replaced by the associated "
            "value.\n");
+    printf("\n");
+    printf("Feature configuration:\n");
+    printf("  Any line in the rules file without an '=' character is an "
+           "enabled feature.\n");
+    printf("  Features can be defined in dotfiles with three octothorpes "
+           "followed by a\n");
+    printf("  space and the feature name. Features that are not enabled in the "
+           "rules will\n");
+    printf("  be excluded in the templated file.\n");
 }
 
 int main(int argc, char **argv)
