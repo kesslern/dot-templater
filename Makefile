@@ -1,5 +1,9 @@
+# These targets don't produce files
+.PHONY: clean
+.PHONY: install
 .PHONY: test
 
+DESTDIR=/usr/bin
 EXECFILE=dot-templater
 TEST_RULES=test/rules
 TEST_DOTFILES=test/dotfiles
@@ -54,3 +58,6 @@ test:
 clean:
 	rm -f $(OBJS)
 	find $(TEST_DEST_DIR) -mindepth 1 -delete
+
+install:
+	cp $(EXECFILE) $(DESTDIR)
