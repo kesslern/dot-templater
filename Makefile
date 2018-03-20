@@ -28,7 +28,7 @@ CLANG_FORMAT_OPTS="{\
 CLANG_TIDY_OPTS=\
 	readability-braces-around-statements,misc-macro-parentheses
 
-all: format build
+all: build
 
 format:
 	clang-format \
