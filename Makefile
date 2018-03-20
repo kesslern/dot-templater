@@ -11,6 +11,7 @@ TEST_DEST_DIR=test/dest
 TEST_EXPECTED_DIR=test/expected
 
 DIFF_FLAGS=-qNr
+RUN_VALGRIND=yes
 VALGRIND_FLAGS=--track-origins=yes --leak-check=full --show-leak-kinds=all --error-exitcode=1
 
 CFLAGS=-std=c11 -O2 -Wall -Wextra -Wpedantic -Werror
@@ -52,8 +53,13 @@ build: $(OBJS)
 test:
 	rm -rf $(TEST_DEST_DIR)
 	mkdir $(TEST_DEST_DIR)
-	valgrind $(VALGRIND_FLAGS) ./$(EXECFILE) $(TEST_RULES) $(TEST_DOTFILES) $(TEST_DEST_DIR)
+	if [ "$(RUN_VALGRIND)" == "yes" ]; then \
+		valgrind $(VALGRIND_FLAGS) ./$(EXECFILE) $(TEST_RULES) $(TEST_DOTFILES) $(TEST_DEST_DIR); \
+	else \
+		./$(EXECFILE) $(TEST_RULES) $(TEST_DOTFILES) $(TEST_DEST_DIR); \
+	fi
 	diff $(DIFF_FLAGS) $(TEST_DEST_DIR) $(TEST_EXPECTED_DIR)
+
 
 clean:
 	rm -f $(OBJS)
