@@ -8,8 +8,12 @@ Many developers store their dotfiles in git repositories, allowing them to share
 * Make string substitutions in files according to configuration files.
 * Include or exclude chunks of files according to configuration file feature flags.
 
+## Known Bugs
+* Will probably mess up binary files.
+Please report any bugs, difficulties, or suggestions in the issue tracker.
+
 ### Planned Features
-* Allow multiple templates to be provided, so features can be overridden.
+You tell me!
 
 ## Building
 
