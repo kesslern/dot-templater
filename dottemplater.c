@@ -79,9 +79,9 @@ int walker(const char *fpath, const struct stat *sb,
     return 0;
 }
 
-void print_help()
+void print_help(char *name)
 {
-    printf("usage: dot-templater RULES SRC_DIR DEST_DIR\n");
+    printf("usage: %s RULES SRC_DIR DEST_DIR\n", name);
     printf("\n");
     printf("Copies files in SRC_DIR to DEST_DIR using rules in RULES.\n");
     printf("\n");
@@ -104,25 +104,25 @@ void print_help()
 int main(int argc, char **argv)
 {
     if (argc != 4) {
-        print_help();
+        print_help(argv[0]);
         exit(EXIT_FAILURE);
     }
 
     if (!is_file(argv[1])) {
         printf("Expected first argument to be a rules file.\n\n");
-        print_help();
+        print_help(argv[0]);
         exit(EXIT_FAILURE);
     }
 
     if (!is_dir(argv[2])) {
         printf("Expected second argument to be a dotfiles directory.\n\n");
-        print_help();
+        print_help(argv[0]);
         exit(EXIT_FAILURE);
     }
 
     if (!is_dir(argv[3])) {
         printf("Expected third argument to be a destination directory.\n\n");
-        print_help();
+        print_help(argv[0]);
         exit(EXIT_FAILURE);
     }
 
