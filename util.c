@@ -62,20 +62,20 @@ char *read_file(const char *filename)
 
 char *strsub(const char *str, const char *key, const char *value)
 {
-    // How far into the string the key occurrance is
+    /* How far into the string the key occurrance is. */
     int occurance_len = strstr(str, key) - str;
     int value_len = strlen(value);
     int key_len = strlen(key);
     int str_len = strlen(str);
     int new_str_len = str_len + value_len - key_len;
-    // Account for null terminator when allocating length
+    /* Account for null terminator when allocating length */
     char *new_str = safe_calloc(new_str_len + 1, sizeof(char));
 
-    // Copy up to the occurrance of the key
+    /* Copy up to the occurrance of the key. */
     memcpy(new_str, str, occurance_len);
-    // Copy the value into the new string at the occurance location
+    /* Copy the value into the new string at the occurance location. */
     memcpy(new_str + occurance_len, value, value_len);
-    // Copy the rest of the string
+    /* Copy the rest of the string. */
     memcpy(new_str + occurance_len + value_len, str + occurance_len + key_len,
            str_len - occurance_len - key_len);
 
