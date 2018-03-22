@@ -1,3 +1,5 @@
+#include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -14,23 +16,28 @@ typedef struct substitution_t {
     struct substitution_t *next;
 } substitution;
 
-substitution *first_substitution = NULL;
+substitution *substitutions_head = NULL;
 
 /**
  * Callback function for saving a substitution.
  */
 void substitution_saver(char *key, char *value)
 {
-    static substitution *current = NULL;
-    if (current == NULL) {
-        current = first_substitution = safe_calloc(1, sizeof(substitution));
-    }
+    static substitution *last_substitution;
+    static bool substitutions_initialized = false;
+    substitution *new_substitution;
 
-    current->key = key;
-    current->value = value;
-    current->next = safe_calloc(1, sizeof(substitution));
-    current = current->next;
-    current->next = NULL;
+    new_substitution = safe_calloc(1, sizeof(substitution));
+    new_substitution->key = key;
+    new_substitution->value = value;
+
+    if (!substitutions_initialized) {
+        substitutions_head = last_substitution = new_substitution;
+        substitutions_initialized = true;
+    } else {
+        last_substitution->next = new_substitution;
+        last_substitution = new_substitution;
+    }
 }
 
 /**
@@ -39,20 +46,20 @@ void substitution_saver(char *key, char *value)
  */
 char *substitute_line(char *line)
 {
-    // TODO: Make this method more readable
-    substitution *current = first_substitution;
     char *result = safe_calloc(strlen(line) + 1, sizeof(char));
     memcpy(result, line, strlen(line) + 1);
 
     /* Make each available substitution in the line. */
-    while (current != NULL && current->key != NULL) {
-        // TODO: strstr is called here and in strsub
-        while (strstr(result, current->key) != NULL) {
-            char *new_line = strsub(result, current->key, current->value);
+    for (substitution *substitution = substitutions_head; substitution != NULL;
+         substitution = substitution->next) {
+        /* Substitute each occurrence of the key. */
+        while (strstr(result, substitution->key) != NULL) {
+            /* Replace result with a substituted line. */
+            char *new_line =
+                strsub(result, substitution->key, substitution->value);
             free(result);
             result = new_line;
         }
-        current = current->next;
     }
 
     /* No substitutions? Create a copy of the original string. */
@@ -74,5 +81,5 @@ void free_substitutions_list(substitution *sub)
 
 void free_substitutions()
 {
-    free_substitutions_list(first_substitution);
+    free_substitutions_list(substitutions_head);
 }
