@@ -13,9 +13,11 @@ void parse_line(char *str, config *config)
     if (str != NULL && !IS_COMMENT(str)) {
         char *split = strchr(str, '=');
         if (split != NULL) {
+            /* Existence of '=' makes this line a key/value substitution. */
             *split = '\0';
             (*config->substitution_saver)(str, ++split);
         } else {
+            /* Not a comment, so this is a feature flag. */
             (*config->feature_saver)(str);
         }
     }
