@@ -7,9 +7,11 @@ Many developers store their dotfiles in git repositories, allowing them to share
 ## Features
 * Make string substitutions in files according to configuration files.
 * Include or exclude chunks of files according to configuration file feature flags.
+* Binary files are copied without templating.
 
 ## Known Bugs
-* Will probably mess up binary files.
+* File permissions are not preserved. This mostly affects executable scripts. After templating they must manually be set executable.
+
 Please report any bugs, difficulties, or suggestions in the issue tracker.
 
 ### Planned Features

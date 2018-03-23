@@ -1,10 +1,14 @@
+#include <fcntl.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "util.h"
+
+#define BUFFER_SIZE 8192
 
 void *safe_calloc(size_t n, size_t size)
 {
@@ -80,4 +84,69 @@ char *strsub(const char *str, const char *key, const char *value)
            str_len - occurance_len - key_len);
 
     return new_str;
+}
+
+/*
+ * Implementation is copied from git.
+ * https://bit.ly/2DMtwBp
+ */
+#define FIRST_FEW_BYTES 8000
+bool buffer_is_binary(const char *ptr, unsigned long size)
+{
+    if (FIRST_FEW_BYTES < size) {
+        size = FIRST_FEW_BYTES;
+    }
+    return !!memchr(ptr, 0, size);
+}
+
+bool is_binary_file(const char *fname)
+{
+    FILE *file = fopen(fname, "rb");
+    char *file_buffer;
+    bool result = false;
+
+    if (file != NULL) {
+        long size = filesize(fname);
+        file_buffer = safe_calloc(size + 1, sizeof(char));
+        fread(file_buffer, size, 1, file);
+        result = buffer_is_binary(file_buffer, size);
+        fclose(file);
+        free(file_buffer);
+    }
+
+    return result;
+}
+
+void copy_file(const char *src, const char *dest)
+{
+    /* Input and output file descriptors */
+    int input_file, output_file;
+    /* Number of bytes returned by read() and write() */
+    ssize_t read_bytes, write_bytes;
+    /* Character buffer */
+    char buffer[BUFFER_SIZE];
+
+    input_file = open(src, O_RDONLY);
+    if (input_file == -1) {
+        perror("open");
+        exit(1);
+    }
+
+    output_file = open(dest, O_WRONLY | O_CREAT, 0644);
+    if (output_file == -1) {
+        perror("open");
+        exit(1);
+    }
+
+    while ((read_bytes = read(input_file, &buffer, BUFFER_SIZE)) > 0) {
+        write_bytes = write(output_file, &buffer, (ssize_t)read_bytes);
+        if (write_bytes != read_bytes) {
+            perror("write");
+            exit(1);
+        }
+    }
+
+    /* Close file descriptors */
+    close(input_file);
+    close(output_file);
 }

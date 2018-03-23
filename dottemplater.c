@@ -24,7 +24,7 @@ void template_file(const char *input, const char *output)
     FILE *in, *out;
     char *line = NULL;
     char *new_line;
-    size_t len = 0;
+    size_t len = 0; // Unused but required by getline call
     int in_disabled_feature = false;
 
     in = fopen(input, "r");
@@ -72,7 +72,11 @@ int walker(const char *fpath, const struct stat *sb,
             mkdir(dest_file, 0700);
         }
     } else {
-        template_file(fpath, dest_file);
+        if (!is_binary_file(fpath)) {
+            template_file(fpath, dest_file);
+        } else {
+            copy_file(fpath, dest_file);
+        }
     }
 
     free(dest_file);
