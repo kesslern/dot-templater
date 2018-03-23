@@ -150,3 +150,14 @@ void copy_file(const char *src, const char *dest)
     close(input_file);
     close(output_file);
 }
+
+void copy_permission(const char *src, const char *dest)
+{
+    struct stat s;
+    stat(src, &s);
+
+    if (chmod(dest, s.st_mode) < 0) {
+        perror("chmod");
+        exit(1);
+    }
+}

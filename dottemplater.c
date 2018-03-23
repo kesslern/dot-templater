@@ -77,6 +77,7 @@ int walker(const char *fpath, const struct stat *sb,
         } else {
             copy_file(fpath, dest_file);
         }
+        copy_permission(fpath, dest_file);
     }
 
     free(dest_file);

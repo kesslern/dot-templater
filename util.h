@@ -21,3 +21,6 @@ bool is_binary_file(const char *fpath);
 
 /** Copies a src file to a destination file.*/
 void copy_file(const char *src, const char *dest);
+
+/** Duplicates permissions on src to dest. */
+void copy_permission(const char *src, const char *dest);

@@ -59,7 +59,11 @@ test:
 		./$(EXECFILE) $(TEST_RULES) $(TEST_DOTFILES) $(TEST_DEST_DIR); \
 	fi
 	diff $(DIFF_FLAGS) $(TEST_DEST_DIR) $(TEST_EXPECTED_DIR)
-
+	if [ ! -x "$(TEST_DEST_DIR)/binary_file" ]; then \
+		@echo "Expected binary_file to be executable."; \
+		exit 1; \
+	fi
+	@echo "*** All tests successfully passed. ***"
 
 clean:
 	rm -f $(OBJS)
