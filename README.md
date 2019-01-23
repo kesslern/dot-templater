@@ -2,19 +2,16 @@
 A small, portable program intended for templating dotfiles across multiple systems.
 
 ## Purpose
-Many developers store their dotfiles in git repositories, allowing them to share their dotfiles across multiple computers. When one system requires a slight change in configuration, a branch is created for those differences. Any further changes intended for the main branch must be merged without bringing in branch-specific changes . This becomes more complicated when multiple features are involved. Different configuration may be required to show battery indicators on portable systems, use larger fonts on HiDPI systems, show Wifi indicators where necessary, or change other values depending on operating system. dot-templater intends to solve these problems.
+Storing dotfiles in git repositories allows them to be shared across multiple computers, but this becomes problematic once systems require slightly different configurations. Laptops require battery indicators and WiFi utilities, HiDPI displays use larger fonts... `dot-templater` intends to solve these problems by making it simple to change values or enable/disable chunks of configuration in any file.
 
 ## Features
-* Make string substitutions in files according to configuration files.
-* Include or exclude chunks of files according to configuration file feature flags.
+* Make string substitutions in files according to configured key/value pairs.
+* Exclude chunks of files, unless feature flags are enabled.
 * Binary files are copied without templating.
-* File permissions are preserved -- executable scripts will remain executable.
+* File permissions are preserved.
 
-## Known Bugs
-I fixed all I could find. Please report any bugs, difficulties, or suggestions in the issue tracker.
-
-### Planned Features
-You tell me!
+## Planned Features
+Feature requests are welcome, but none are planned.
 
 ## Building
 
