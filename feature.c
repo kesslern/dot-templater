@@ -44,17 +44,17 @@ void free_features()
     _free_features(first_feature);
 }
 
-bool _is_feature_enabled(feature *features, char *feature)
+bool _is_feature_enabled(feature *feature, char *name)
 {
-    char *last_char = feature + strlen(feature) - 1;
+    char *last_char = name + strlen(name) - 1;
     if (*last_char == '\n') {
-        *last_char = '\0';
+      *last_char = '\0';
     }
-    if (features->feature_name != NULL) {
-        if (strcmp(features->feature_name, feature) == 0) {
+    if (feature != NULL && feature->feature_name != NULL) {
+        if (strcmp(feature->feature_name, name) == 0) {
             return true;
         }
-        return _is_feature_enabled(features->next, feature);
+        return _is_feature_enabled(feature->next, name);
     }
     return false;
 }
