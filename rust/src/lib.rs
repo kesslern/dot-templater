@@ -3,8 +3,8 @@ use std::io::BufRead;
 use std::io::Lines;
 
 pub struct Config {
-    features: Vec<String>,
-    substitutions: HashMap<String, String>
+    pub features: Vec<String>,
+    pub substitutions: HashMap<String, String>
 }
 
 pub enum ConfigValue {
@@ -12,7 +12,7 @@ pub enum ConfigValue {
     Substitution { key: String, value: String },
 }
 
-pub fn parse_line(line: String) -> Option<ConfigValue> {
+fn parse_line(line: String) -> Option<ConfigValue> {
     let mut line = line.trim().to_string();
 
     if line.is_empty() {
@@ -35,24 +35,26 @@ pub fn parse_line(line: String) -> Option<ConfigValue> {
     }
 }
 
-pub fn get_config(lines: Lines) -> Config {
-    let mut variables = HashMap::new();
-    let mut features: Vec<String> = Vec::new();
-
+pub fn get_config<B: BufRead>(lines: Lines<B>) -> Config {
+    let mut config = Config {
+        features: Vec::new(),
+        substitutions: HashMap::new(),
+    };
+    
     for line in lines {
         let line = line.unwrap();
 
         match parse_line(line) {
             Some(value) => match value {
                 ConfigValue::Feature(it) => {
-                    features.push(it);
+                    config.features.push(it);
                 }
                 ConfigValue::Substitution { key, value } => {
-                    variables.insert(key, value);
+                    config.substitutions.insert(key, value);
                 }
             },
             None => (),
         }
     }
-
+    config
 }
