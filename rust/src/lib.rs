@@ -58,3 +58,12 @@ pub fn get_config<B: BufRead>(lines: Lines<B>) -> Config {
     }
     config
 }
+
+pub fn trim_trailing_slash(string: &str) -> &str {
+    let last_byte = string.as_bytes().last().unwrap();
+    if *last_byte == '/' as u8 {
+        &string[..string.len()-1]
+    } else {
+        string
+    }
+}

@@ -2,6 +2,7 @@ extern crate dot_templater;
 extern crate walkdir;
 
 use dot_templater::get_config;
+use dot_templater::trim_trailing_slash;
 use std::error::Error;
 use std::fs::File;
 use std::fs;
@@ -25,6 +26,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let copy_from = "../test";
     let copy_to = "imaginaryFolder/../bar/";
 
+    let copy_from = trim_trailing_slash(copy_from);
+    let copy_to = trim_trailing_slash(copy_to);
+    
     for entry in WalkDir::new(copy_from) {
         let entry = entry?;
         let path = entry.path();
