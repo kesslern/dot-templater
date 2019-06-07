@@ -1,11 +1,11 @@
 extern crate dot_templater;
 extern crate walkdir;
 
-use dot_templater::get_config;
 use dot_templater::is_binary;
 use dot_templater::is_dir;
 use dot_templater::trim_trailing_slash;
 use dot_templater::Arguments;
+use dot_templater::Config;
 use std::env;
 use std::error::Error;
 use std::fs::File;
@@ -22,15 +22,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("From: {}", args.source);
     println!("To: {}", args.dest);
 
-    let file = BufReader::new(File::open("mew")?);
-    let config = get_config(file.lines());
+    let file = BufReader::new(File::open(args.rules)?);
+    let config = Config::new(file.lines());
 
-    for (key, value) in config.substitutions {
+    for (key, value) in &config.substitutions {
         println!("Found key: {}", key);
         println!("Found value: {}", value);
     }
 
-    for feature in config.features {
+    for feature in &config.features {
         println!("Found a feature: {}", feature);
     }
 
@@ -54,6 +54,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         } else if !source_is_dir {
             if is_binary(source) {
                 fs::copy(source, dest)?;
+            } else {
+                config.template(source, dest);
             }
         }
         

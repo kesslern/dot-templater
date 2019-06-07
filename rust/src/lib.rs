@@ -3,8 +3,10 @@ use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::BufRead;
+use std::io::BufReader;
 use std::io::Lines;
 use std::io::Read;
+use std::io::Write;
 use std::path::Path;
 
 pub struct Config {
@@ -12,56 +14,69 @@ pub struct Config {
     pub substitutions: HashMap<String, String>,
 }
 
+impl Config {
+    pub fn new<B: BufRead>(lines: Lines<B>) -> Config {
+        let mut config = Config {
+            features: Vec::new(),
+            substitutions: HashMap::new(),
+        };
+
+        for line in lines {
+            let line = line.unwrap();
+
+            match Config::parse_line(line) {
+                Some(value) => match value {
+                    ConfigValue::Feature(it) => {
+                        config.features.push(it);
+                    }
+                    ConfigValue::Substitution { key, value } => {
+                        config.substitutions.insert(key, value);
+                    }
+                },
+                None => (),
+            }
+        }
+        config
+    }
+
+    fn parse_line(line: String) -> Option<ConfigValue> {
+        let mut line = line.trim().to_string();
+
+        if line.is_empty() {
+            return None;
+        }
+
+        match line.chars().position(|c| c == '=') {
+            Some(idx) => {
+                let mut var = line.split_off(idx);
+                var.remove(0);
+                return Some(ConfigValue::Substitution {
+                    key: line,
+                    value: var,
+                });
+            }
+            None => {
+                println!("Found a feature: {}", line);
+                return Some(ConfigValue::Feature(line));
+            }
+        }
+    }
+
+    pub fn template(&self, source: &Path, dest: &Path) {
+        let source = BufReader::new(File::open(source).unwrap());
+        let mut dest = File::open(dest).unwrap();
+        let mut in_disabled_feature = false;
+        
+        for line in source.lines() {
+            let line = line.unwrap();
+            dest.write_all(line.as_bytes());
+        }
+    }
+}
+
 pub enum ConfigValue {
     Feature(String),
     Substitution { key: String, value: String },
-}
-
-fn parse_line(line: String) -> Option<ConfigValue> {
-    let mut line = line.trim().to_string();
-
-    if line.is_empty() {
-        return None;
-    }
-
-    match line.chars().position(|c| c == '=') {
-        Some(idx) => {
-            let mut var = line.split_off(idx);
-            var.remove(0);
-            return Some(ConfigValue::Substitution {
-                key: line,
-                value: var,
-            });
-        }
-        None => {
-            println!("Found a feature: {}", line);
-            return Some(ConfigValue::Feature(line));
-        }
-    }
-}
-
-pub fn get_config<B: BufRead>(lines: Lines<B>) -> Config {
-    let mut config = Config {
-        features: Vec::new(),
-        substitutions: HashMap::new(),
-    };
-
-    for line in lines {
-        let line = line.unwrap();
-
-        match parse_line(line) {
-            Some(value) => match value {
-                ConfigValue::Feature(it) => {
-                    config.features.push(it);
-                }
-                ConfigValue::Substitution { key, value } => {
-                    config.substitutions.insert(key, value);
-                }
-            },
-            None => (),
-        }
-    }
-    config
 }
 
 pub struct Arguments {
