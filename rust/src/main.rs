@@ -3,6 +3,7 @@ extern crate walkdir;
 
 use dot_templater::get_config;
 use dot_templater::trim_trailing_slash;
+use dot_templater::Arguments;
 use std::env;
 use std::error::Error;
 use std::fs;
@@ -11,14 +12,7 @@ use std::io::BufRead;
 use std::io::BufReader;
 use walkdir::WalkDir;
 
-struct Arguments {
-    rules: String,
-    source: String,
-    dest: String,
-}
-
 fn main() -> Result<(), Box<dyn Error>> {
-
     let args = Arguments::new(env::args()).unwrap();
 
     println!("Rules: {}", args.rules);
@@ -52,31 +46,4 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
-}
-
-impl Arguments {
-    pub fn new(mut args: env::Args) -> Result<Arguments, &'static str> {
-        args.next();
-
-        let rules = match args.next() {
-            Some(arg) => arg,
-            None => return Err("No rules file provided."),
-        };
-
-        let source = match args.next() {
-            Some(arg) => arg,
-            None => return Err("No source directory provided."),
-        };
-
-        let dest = match args.next() {
-            Some(arg) => arg,
-            None => return Err("No destination directory provided."),
-        };
-
-        Ok(Arguments {
-            rules,
-            source,
-            dest,
-        })
-    }
 }

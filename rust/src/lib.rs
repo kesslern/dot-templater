@@ -1,10 +1,11 @@
 use std::collections::HashMap;
+use std::env;
 use std::io::BufRead;
 use std::io::Lines;
 
 pub struct Config {
     pub features: Vec<String>,
-    pub substitutions: HashMap<String, String>
+    pub substitutions: HashMap<String, String>,
 }
 
 pub enum ConfigValue {
@@ -40,7 +41,7 @@ pub fn get_config<B: BufRead>(lines: Lines<B>) -> Config {
         features: Vec::new(),
         substitutions: HashMap::new(),
     };
-    
+
     for line in lines {
         let line = line.unwrap();
 
@@ -59,10 +60,43 @@ pub fn get_config<B: BufRead>(lines: Lines<B>) -> Config {
     config
 }
 
+pub struct Arguments {
+    pub rules: String,
+    pub source: String,
+    pub dest: String,
+}
+
+impl Arguments {
+    pub fn new(mut args: env::Args) -> Result<Arguments, &'static str> {
+        args.next();
+
+        let rules = match args.next() {
+            Some(arg) => arg,
+            None => return Err("No rules file provided."),
+        };
+
+        let source = match args.next() {
+            Some(arg) => arg,
+            None => return Err("No source directory provided."),
+        };
+
+        let dest = match args.next() {
+            Some(arg) => arg,
+            None => return Err("No destination directory provided."),
+        };
+
+        Ok(Arguments {
+            rules,
+            source,
+            dest,
+        })
+    }
+}
+
 pub fn trim_trailing_slash(string: &str) -> &str {
     let last_byte = string.as_bytes().last().unwrap();
     if *last_byte == '/' as u8 {
-        &string[..string.len()-1]
+        &string[..string.len() - 1]
     } else {
         string
     }
