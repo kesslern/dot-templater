@@ -5,6 +5,7 @@ use std::fs::File;
 use std::io::BufRead;
 use std::io::Lines;
 use std::io::Read;
+use std::path::Path;
 
 pub struct Config {
     pub features: Vec<String>,
@@ -105,15 +106,15 @@ pub fn trim_trailing_slash(string: &str) -> &str {
     }
 }
 
-pub fn is_dir(file: &str) -> bool {
+pub fn is_dir(file: &Path) -> bool {
     match fs::metadata(file) {
         Ok(metadata) => metadata,
         Err(_) => return false,
-    }.is_dir()
+    }
+    .is_dir()
 }
 
-pub fn is_binary(file: &str) -> bool {
-
+pub fn is_binary(file: &Path) -> bool {
     if is_dir(file) {
         return false;
     }

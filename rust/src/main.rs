@@ -11,6 +11,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
+use std::path::Path;
 use walkdir::WalkDir;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -39,9 +40,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         let entry = entry?;
         let path = entry.path();
         let dest = path.to_str().unwrap().replace(copy_from, copy_to);
+        let dest = Path::new(&dest);
         println!("Source: {}", path.display());
-        println!("Dest: {}", dest);
-        println!("Is directory: {}", is_dir(path.to_str().unwrap()));
+        println!("Dest: {}", dest.display());
+        println!("Is directory: {}", is_dir(path));
         println!("Is binary: {}", is_binary(&dest));
         println!("-----------------");
     }
