@@ -3,11 +3,11 @@ extern crate walkdir;
 
 use dot_templater::get_config;
 use dot_templater::is_binary;
+use dot_templater::is_dir;
 use dot_templater::trim_trailing_slash;
 use dot_templater::Arguments;
 use std::env;
 use std::error::Error;
-use std::fs;
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
@@ -41,8 +41,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let dest = path.to_str().unwrap().replace(copy_from, copy_to);
         println!("Source: {}", path.display());
         println!("Dest: {}", dest);
-        let attr = fs::metadata(path)?;
-        println!("Is directory: {}", attr.is_dir());
+        println!("Is directory: {}", is_dir(path.to_str().unwrap()));
         println!("Is binary: {}", is_binary(&dest));
         println!("-----------------");
     }

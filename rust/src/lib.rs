@@ -105,13 +105,16 @@ pub fn trim_trailing_slash(string: &str) -> &str {
     }
 }
 
-pub fn is_binary(file: &str) -> bool {
-    let metadata = match fs::metadata(file) {
+pub fn is_dir(file: &str) -> bool {
+    match fs::metadata(file) {
         Ok(metadata) => metadata,
         Err(_) => return false,
-    };
+    }.is_dir()
+}
 
-    if metadata.is_dir() {
+pub fn is_binary(file: &str) -> bool {
+
+    if is_dir(file) {
         return false;
     }
 
