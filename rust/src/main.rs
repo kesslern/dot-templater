@@ -9,6 +9,7 @@ use dot_templater::Arguments;
 use std::env;
 use std::error::Error;
 use std::fs::File;
+use std::fs;
 use std::io::BufRead;
 use std::io::BufReader;
 use std::path::Path;
@@ -37,14 +38,25 @@ fn main() -> Result<(), Box<dyn Error>> {
     let copy_to = trim_trailing_slash(&args.dest);
 
     for entry in WalkDir::new(copy_from) {
-        let entry = entry?;
-        let path = entry.path();
-        let dest = path.to_str().unwrap().replace(copy_from, copy_to);
+        let source = entry?;
+        let source = source.path();
+        let dest = source.to_str().unwrap().replace(copy_from, copy_to);
         let dest = Path::new(&dest);
-        println!("Source: {}", path.display());
+        println!("Source: {}", source.display());
         println!("Dest: {}", dest.display());
-        println!("Is directory: {}", is_dir(path));
-        println!("Is binary: {}", is_binary(&dest));
+        println!("Dest exists: {}", dest.exists());
+        println!("Source is directory: {}", is_dir(source));
+        println!("Source is binary: {}", is_binary(&source));
+        let source_is_dir = is_dir(source);
+        
+        if !dest.exists() && source_is_dir {
+            fs::create_dir(dest)?;
+        } else if !source_is_dir {
+            if is_binary(source) {
+                fs::copy(source, dest)?;
+            }
+        }
+        
         println!("-----------------");
     }
 
