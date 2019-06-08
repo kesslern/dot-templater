@@ -3,6 +3,7 @@ extern crate regex;
 use regex::Regex;
 use std::collections::HashMap;
 use std::env;
+use std::error::Error;
 use std::fs;
 use std::fs::File;
 use std::io::BufRead;
@@ -18,14 +19,14 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new<B: BufRead>(lines: Lines<B>) -> Config {
+    pub fn new<B: BufRead>(lines: Lines<B>) -> Result<Config, Box<dyn Error>> {
         let mut config = Config {
             features: Vec::new(),
             substitutions: HashMap::new(),
         };
 
         for line in lines {
-            let line = line.unwrap();
+            let line = line?;
 
             match Config::parse_line(line) {
                 Some(value) => match value {
@@ -39,7 +40,8 @@ impl Config {
                 None => (),
             }
         }
-        config
+
+        Ok(config)
     }
 
     fn parse_line(line: String) -> Option<ConfigValue> {
@@ -65,19 +67,18 @@ impl Config {
         }
     }
 
-    pub fn template(&self, source: &Path, dest: &Path) {
+    pub fn template(&self, source: &Path, dest: &Path) -> Result<(), Box<dyn Error>> {
         println!("Templating {} to {}", source.display(), dest.display());
-        let source = BufReader::new(File::open(source).unwrap());
-        let mut dest = File::create(dest).unwrap();
+        let source = BufReader::new(File::open(source)?);
+        let mut dest = File::create(dest)?;
         let mut in_disabled_feature = false;
 
         for line in source.lines() {
-            let line = line.unwrap();
+            let line = line?;
             let feature = self.is_feature_enable_or_disable(&line);
 
             match feature {
                 Some(enabled) => {
-
                     if in_disabled_feature {
                         in_disabled_feature = false;
                     } else if !enabled {
@@ -90,12 +91,14 @@ impl Config {
                         for (key, value) in &self.substitutions {
                             line = line.replace(key, value);
                         }
-                        dest.write_all(line.as_bytes()).expect("oops");
-                        dest.write("\n".as_bytes()).expect("oof");
+                        dest.write_all(line.as_bytes())?;
+                        dest.write("\n".as_bytes())?;
                     }
                 }
             }
         }
+
+        Ok(())
     }
 
     fn is_feature_enable_or_disable(&self, line: &str) -> Option<bool> {
@@ -135,15 +138,18 @@ impl Arguments {
             None => return Err("No rules file provided."),
         };
 
-        let source = match args.next() {
-            Some(arg) => arg,
+        let mut source: String = match args.next() {
+            Some(mut arg) => arg,
             None => return Err("No source directory provided."),
         };
 
-        let dest = match args.next() {
-            Some(arg) => arg,
+        let mut dest: String = match args.next() {
+            Some(mut arg) => arg,
             None => return Err("No destination directory provided."),
         };
+
+        Arguments::trim_trailing_slash(&mut source);
+        Arguments::trim_trailing_slash(&mut dest);
 
         Ok(Arguments {
             rules,
@@ -151,14 +157,17 @@ impl Arguments {
             dest,
         })
     }
-}
 
-pub fn trim_trailing_slash(string: &str) -> &str {
-    let last_byte = string.as_bytes().last().unwrap();
-    if *last_byte == '/' as u8 {
-        &string[..string.len() - 1]
-    } else {
-        string
+    fn trim_trailing_slash(string: &mut String) {
+        let len = string.len();
+        let has_trailing_slash = match string.as_bytes().last() {
+            Some(byte) => *byte == '/' as u8,
+            None => return,
+        };
+
+        if has_trailing_slash {
+            string.truncate(len - 1);
+        }
     }
 }
 
