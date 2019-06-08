@@ -1,0 +1,8 @@
+[package]
+name = "dot-templater"
+version = "0.1.0"
+authors = ["Nathan Kessler <nathant93@gmail.com>"]
+
+[dependencies]
+walkdir = "2"
+regex = "1"

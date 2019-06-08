@@ -1,4 +1,3 @@
-test/dest/*
-dot-templater
-*.o
-vgcore.*
+
+/target/
+**/*.rs.bk
