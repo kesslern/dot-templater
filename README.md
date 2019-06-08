@@ -1,35 +1,34 @@
 # dot-templater
-A small, portable program intended for templating dotfiles across multiple systems.
+A small, portable Rust program intended for templating dotfiles across multiple systems.
 
 ## Purpose
 Storing dotfiles in git repositories allows them to be shared across multiple computers, but this becomes problematic once systems require slightly different configurations. Laptops require battery indicators and WiFi utilities, HiDPI displays use larger fonts... `dot-templater` intends to solve these problems by making it simple to change values or enable/disable chunks of configuration in any file.
 
 ## Features
 * Make string substitutions in files according to configured key/value pairs.
-* Exclude chunks of files, unless feature flags are enabled.
+* Toggle chunks of files per feature flags.
 * Binary files are copied without templating.
 * File permissions are preserved.
 
 ## Planned Features
-Feature requests are welcome, but none are planned.
+Feature requests are welcome!
 
 ## Building
 
 ### Build dependencies
-* make
-* gcc
+* cargo
 
-Build the project with `make build`, producing executable `dot-templater`. 
+Build the project with `cargo build`. Run with `cargo run`.
 
 ## Usage
 ```
-dot-templater RULES SRC_DIR DEST_DIR
+dot-templater CONFIG SRC_DIR DEST_DIR
 ```
 
-Copies files from `SRC_DIR` to `DEST_DIR` according to rules in `RULES`.
+Copies files from `SRC_DIR` to `DEST_DIR` according to rules in `CONFIG`.
 
-### Rules Format
-Any line beginning with `#` is ignored. Rules file can contain key/value substitutions and feature flags.
+### Config Format
+Any line beginning with `#` is ignored. Config file can contain key/value substitutions and feature flags.
 
 #### Key/Value Substitutions
 String subsitutions are defined by a key and value separated by the first occurance of `=`. The following configuration file:
@@ -54,22 +53,17 @@ This line will only be included when FEATURE1 is enabled.
 This line will always be included.
 ```
 
-## Development
+## Release Builds
+
 ### Dependencies
 * make
-* gcc
-* clang-tidy
-* clang-format
-* valgrind
+* cargo
 
 ### Compiling
-`make` compiles the code and produces a `dot-templater` executable.
-
-### Formatting
-Code is formatted with `make format`.
+`make` compiles a release build, producing `target/release/dot-templater`.
 
 ### Testing
-`make test` copies the files in `test/dotfiles` to `test/dest` according to `test/rules` and compares with `test/expected`. The executable is analyzed with valgrind to prevent memory leaks. Valgrind must report "no leaks possible".
+`make test` copies the files in `test/dotfiles` to `test/dest` according to `test/rules` and compares with `test/expected`.
 
 ## License
 [MIT](LICENSE)
