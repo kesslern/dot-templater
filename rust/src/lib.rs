@@ -66,6 +66,7 @@ impl Config {
     }
 
     pub fn template(&self, source: &Path, dest: &Path) {
+        println!("Templating {} to {}", source.display(), dest.display());
         let source = BufReader::new(File::open(source).unwrap());
         let mut dest = File::create(dest).unwrap();
         let mut in_disabled_feature = false;
@@ -76,6 +77,7 @@ impl Config {
 
             match feature {
                 Some(enabled) => {
+
                     if in_disabled_feature {
                         in_disabled_feature = false;
                     } else if !enabled {
@@ -84,6 +86,10 @@ impl Config {
                 }
                 None => {
                     if !in_disabled_feature {
+                        let mut line = line;
+                        for (key, value) in &self.substitutions {
+                            line = line.replace(key, value);
+                        }
                         dest.write_all(line.as_bytes()).expect("oops");
                         dest.write("\n".as_bytes()).expect("oof");
                     }
@@ -95,6 +101,7 @@ impl Config {
     fn is_feature_enable_or_disable(&self, line: &str) -> Option<bool> {
         let re = Regex::new("^\\s*### .*$").unwrap();
         if re.is_match(line) {
+            println!("Found a feature line: {}", line);
             let found_feature = &line.trim()[3..].trim();
             for feature in &self.features {
                 if found_feature == feature {
@@ -182,7 +189,7 @@ pub fn is_binary(file: &Path) -> bool {
     let mut iterations = 0;
 
     for byte in contents {
-        if byte == b'0' {
+        if byte == 0b0 {
             return true;
         }
         if iterations > 8000 {
