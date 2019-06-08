@@ -5,3 +5,4 @@ authors = ["Nathan Kessler <nathant93@gmail.com>"]
 
 [dependencies]
 walkdir = "2"
+regex = "1"

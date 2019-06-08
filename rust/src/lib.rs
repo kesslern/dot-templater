@@ -1,3 +1,6 @@
+extern crate regex;
+
+use regex::Regex;
 use std::collections::HashMap;
 use std::env;
 use std::fs;
@@ -42,7 +45,7 @@ impl Config {
     fn parse_line(line: String) -> Option<ConfigValue> {
         let mut line = line.trim().to_string();
 
-        if line.is_empty() {
+        if line.is_empty() || line.starts_with("#") {
             return None;
         }
 
@@ -64,12 +67,43 @@ impl Config {
 
     pub fn template(&self, source: &Path, dest: &Path) {
         let source = BufReader::new(File::open(source).unwrap());
-        let mut dest = File::open(dest).unwrap();
+        let mut dest = File::create(dest).unwrap();
         let mut in_disabled_feature = false;
-        
+
         for line in source.lines() {
             let line = line.unwrap();
-            dest.write_all(line.as_bytes());
+            let feature = self.is_feature_enable_or_disable(&line);
+
+            match feature {
+                Some(enabled) => {
+                    if in_disabled_feature {
+                        in_disabled_feature = false;
+                    } else if !enabled {
+                        in_disabled_feature = true;
+                    }
+                }
+                None => {
+                    if !in_disabled_feature {
+                        dest.write_all(line.as_bytes()).expect("oops");
+                        dest.write("\n".as_bytes()).expect("oof");
+                    }
+                }
+            }
+        }
+    }
+
+    fn is_feature_enable_or_disable(&self, line: &str) -> Option<bool> {
+        let re = Regex::new("^\\s*### .*$").unwrap();
+        if re.is_match(line) {
+            let found_feature = &line.trim()[3..].trim();
+            for feature in &self.features {
+                if found_feature == feature {
+                    return Some(true);
+                }
+            }
+            return Some(false);
+        } else {
+            None
         }
     }
 }
