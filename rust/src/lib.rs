@@ -1,4 +1,5 @@
 extern crate regex;
+extern crate walkdir;
 
 use regex::Regex;
 use std::collections::HashMap;
@@ -12,6 +13,7 @@ use std::io::Lines;
 use std::io::Read;
 use std::io::Write;
 use std::path::Path;
+use walkdir::WalkDir;
 
 pub struct Config {
     pub features: Vec<String>,
@@ -67,7 +69,7 @@ impl Config {
         }
     }
 
-    pub fn template(&self, source: &Path, dest: &Path) -> Result<(), Box<dyn Error>> {
+    fn template_file(&self, source: &Path, dest: &Path) -> Result<(), Box<dyn Error>> {
         println!("Templating {} to {}", source.display(), dest.display());
         let source = BufReader::new(File::open(source)?);
         let mut dest = File::create(dest)?;
@@ -115,6 +117,35 @@ impl Config {
         } else {
             None
         }
+    }
+
+    pub fn template(&self, source_dir: &str, dest_dir: &str) -> Result<(), Box<dyn Error>> {
+        for entry in WalkDir::new(source_dir) {
+            let source_file = entry?;
+            let source_file = source_file.path();
+            let dest_file = source_file.to_str().unwrap().replace(source_dir, dest_dir);
+            let dest_file = Path::new(&dest_file);
+            println!("Source: {}", source_file.display());
+            println!("Dest: {}", dest_file.display());
+            println!("Dest exists: {}", dest_file.exists());
+            println!("Source is directory: {}", is_dir(source_file));
+            println!("Source is binary: {}", is_binary(&source_file));
+            let source_file_is_dir = is_dir(source_file);
+
+            if !dest_file.exists() && source_file_is_dir {
+                fs::create_dir(dest_file)?;
+            } else if !source_file_is_dir {
+                if is_binary(source_file) {
+                    fs::copy(source_file, dest_file)?;
+                } else {
+                    self.template_file(source_file, dest_file)?;
+                }
+            }
+
+            println!("-----------------");
+        }
+        
+        Ok(())
     }
 }
 
