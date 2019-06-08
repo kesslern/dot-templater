@@ -63,14 +63,12 @@ impl Config {
                 });
             }
             None => {
-                println!("Found a feature: {}", line);
                 return Some(ConfigValue::Feature(line));
             }
         }
     }
 
     fn template_file(&self, source: &Path, dest: &Path) -> Result<(), Box<dyn Error>> {
-        println!("Templating {} to {}", source.display(), dest.display());
         let source = BufReader::new(File::open(source)?);
         let mut dest = File::create(dest)?;
         let mut in_disabled_feature = false;
@@ -106,7 +104,6 @@ impl Config {
     fn is_feature_enable_or_disable(&self, line: &str) -> Option<bool> {
         let re = Regex::new("^\\s*### .*$").unwrap();
         if re.is_match(line) {
-            println!("Found a feature line: {}", line);
             let found_feature = &line.trim()[3..].trim();
             for feature in &self.features {
                 if found_feature == feature {
@@ -125,11 +122,6 @@ impl Config {
             let source_file = source_file.path();
             let dest_file = source_file.to_str().unwrap().replace(source_dir, dest_dir);
             let dest_file = Path::new(&dest_file);
-            println!("Source: {}", source_file.display());
-            println!("Dest: {}", dest_file.display());
-            println!("Dest exists: {}", dest_file.exists());
-            println!("Source is directory: {}", is_dir(source_file));
-            println!("Source is binary: {}", is_binary(&source_file));
             let source_file_is_dir = is_dir(source_file);
 
             if !dest_file.exists() && source_file_is_dir {
@@ -141,8 +133,6 @@ impl Config {
                     self.template_file(source_file, dest_file)?;
                 }
             }
-
-            println!("-----------------");
         }
         
         Ok(())

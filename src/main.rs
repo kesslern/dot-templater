@@ -17,10 +17,6 @@ fn main() {
         process::exit(1);
     });
 
-    println!("Rules: {}", args.rules);
-    println!("From: {}", args.source);
-    println!("To: {}", args.dest);
-
     let config = File::open(args.rules).unwrap_or_else(|err| {
         eprintln!("Error while opening config file: {}", err);
         process::exit(1);
@@ -31,15 +27,6 @@ fn main() {
         eprintln!("Error while parsing config file: {}", err);
         process::exit(1);
     });
-
-    for (key, value) in &config.substitutions {
-        println!("Found key: {}", key);
-        println!("Found value: {}", value);
-    }
-
-    for feature in &config.features {
-        println!("Found a feature: {}", feature);
-    }
 
     config
         .template(&args.source, &args.dest)
