@@ -160,12 +160,12 @@ impl Arguments {
         };
 
         let mut source: String = match args.next() {
-            Some(mut arg) => arg,
+            Some(arg) => arg,
             None => return Err("No source directory provided."),
         };
 
         let mut dest: String = match args.next() {
-            Some(mut arg) => arg,
+            Some(arg) => arg,
             None => return Err("No destination directory provided."),
         };
 
