@@ -6,6 +6,7 @@ Storing dotfiles in git repositories allows them to be shared across multiple co
 
 ## Features
 * Make string substitutions in files according to configured key/value pairs.
+* Use output from arbitrary shell commands in templated dotfiles (e.g. for passwords with GNU Pass).
 * Toggle chunks of files per feature flags.
 * Binary files are copied without templating.
 * File permissions are preserved.
@@ -38,6 +39,12 @@ String subsitutions are defined by a key and value separated by the first occura
 asdf=aoeu
 ```
 will replace all occurances of `{SUBSTITION ONE}` with `123`, `[font size]` with `19`, and `asdf` with `aoeu`.
+
+#### Arbitrary Shell Commands
+If the `=` separating key/value pairs is immediately proceeded by `SHELL `, dot-templater will run the provided command and use the stdout when templating dotfiles. Providing following line in a config file will substitute any occurrance of `SHELL_COMMAND` with `1234`.
+```
+SHELL_COMMAND=SHELL echo 1234
+```
 
 #### Feature Flags
 Any line in the rules configuration file that does not include a `=` character and is not a comment will enable the feature name that matches the line. Dotfiles can designate togglable features with three octothorpes followed by the feature name. 

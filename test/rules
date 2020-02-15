@@ -11,3 +11,5 @@ EMPTY VARIABLE=
 
 FEATURE1
 # More comments...
+
+SHELL_COMMAND=SHELL echo 1234
