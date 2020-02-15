@@ -13,6 +13,7 @@ use std::io::Lines;
 use std::io::Read;
 use std::io::Write;
 use std::path::Path;
+use std::process::Command;
 use walkdir::WalkDir;
 
 pub struct Config {
@@ -30,7 +31,7 @@ impl Config {
         for line in lines {
             let line = line?;
 
-            match Config::parse_line(line) {
+            match Config::parse_line(line)? {
                 Some(value) => match value {
                     ConfigValue::Feature(it) => {
                         config.features.push(it);
@@ -46,27 +47,50 @@ impl Config {
         Ok(config)
     }
 
-    fn parse_line(line: String) -> Option<ConfigValue> {
+    fn run_command(command: String) -> Result<String, Box<dyn Error>> {
+        let stdout = Command::new("sh")
+            .arg("-c")
+            .arg(&command)
+            .output()?
+            .stdout;
+
+        return Ok(String::from_utf8(stdout)?.trim().to_owned());
+    }
+
+
+    fn parse_line(line: String) -> Result<Option<ConfigValue>, Box<dyn Error>> {
         let mut line = line.trim().to_string();
 
         if line.is_empty() || line.starts_with("#") {
-            return None;
+            return Ok(None);
         }
 
         match line.chars().position(|c| c == '=') {
             Some(idx) => {
-                let mut var = line.split_off(idx);
-                var.remove(0);
-                return Some(ConfigValue::Substitution {
-                    key: line,
-                    value: var,
-                });
+                let mut value = line.split_off(idx);
+                value.remove(0);
+
+                if value.starts_with("SHELL ") {
+                    let command = value.split_off(6);
+                    let result = &Config::run_command(command)?;
+
+                    return Ok(Some(ConfigValue::Substitution {
+                        key: line,
+                        value: result.to_owned(),
+                    }));
+                } else {
+                    return Ok(Some(ConfigValue::Substitution {
+                        key: line,
+                        value: value,
+                    }));
+                }
             }
             None => {
-                return Some(ConfigValue::Feature(line));
+                return Ok(Some(ConfigValue::Feature(line)));
             }
         }
     }
+
 
     fn template_file(&self, source: &Path, dest: &Path) -> Result<(), Box<dyn Error>> {
         let source = BufReader::new(File::open(source)?);
