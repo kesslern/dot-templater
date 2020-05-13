@@ -17,7 +17,10 @@ SRCS:=$(wildcard src*.rs)
 all: build
 
 build: $(SRCS)
-	cargo build --release
+	cargo build
+
+release: $(SRCS)
+	   cargo build --release --locked --all-features
 
 test:
 	rm -rf $(TEST_DEST_DIR)
