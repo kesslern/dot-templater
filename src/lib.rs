@@ -31,16 +31,15 @@ impl Config {
         for line in lines {
             let line = line?;
 
-            match Config::parse_line(line)? {
-                Some(value) => match value {
+            if let Some(value) = Config::parse_line(line)? {
+                match value {
                     ConfigValue::Feature(it) => {
                         config.features.push(it);
                     }
                     ConfigValue::Substitution { key, value } => {
                         config.substitutions.insert(key, value);
                     }
-                },
-                None => (),
+                }
             }
         }
 
@@ -48,20 +47,15 @@ impl Config {
     }
 
     fn run_command(command: String) -> Result<String, Box<dyn Error>> {
-        let stdout = Command::new("sh")
-            .arg("-c")
-            .arg(&command)
-            .output()?
-            .stdout;
+        let stdout = Command::new("sh").arg("-c").arg(&command).output()?.stdout;
 
-        return Ok(String::from_utf8(stdout)?.trim().to_owned());
+        Ok(String::from_utf8(stdout)?.trim().to_owned())
     }
-
 
     fn parse_line(line: String) -> Result<Option<ConfigValue>, Box<dyn Error>> {
         let mut line = line.trim().to_string();
 
-        if line.is_empty() || line.starts_with("#") {
+        if line.is_empty() || line.starts_with('#') {
             return Ok(None);
         }
 
@@ -74,23 +68,17 @@ impl Config {
                     let command = value.split_off(6);
                     let result = &Config::run_command(command)?;
 
-                    return Ok(Some(ConfigValue::Substitution {
+                    Ok(Some(ConfigValue::Substitution {
                         key: line,
                         value: result.to_owned(),
-                    }));
+                    }))
                 } else {
-                    return Ok(Some(ConfigValue::Substitution {
-                        key: line,
-                        value: value,
-                    }));
+                    Ok(Some(ConfigValue::Substitution { key: line, value }))
                 }
             }
-            None => {
-                return Ok(Some(ConfigValue::Feature(line)));
-            }
+            None => Ok(Some(ConfigValue::Feature(line))),
         }
     }
-
 
     fn template_file(&self, source: &Path, dest: &Path) -> Result<(), Box<dyn Error>> {
         let source = BufReader::new(File::open(source)?);
@@ -116,7 +104,7 @@ impl Config {
                             line = line.replace(key, value);
                         }
                         dest.write_all(line.as_bytes())?;
-                        dest.write("\n".as_bytes())?;
+                        dest.write_all(b"\n")?;
                     }
                 }
             }
@@ -134,7 +122,7 @@ impl Config {
                     return Some(true);
                 }
             }
-            return Some(false);
+            Some(false)
         } else {
             None
         }
@@ -158,7 +146,7 @@ impl Config {
                 }
             }
         }
-        
+
         Ok(())
     }
 }
@@ -206,7 +194,7 @@ impl Arguments {
     fn trim_trailing_slash(string: &mut String) {
         let len = string.len();
         let has_trailing_slash = match string.as_bytes().last() {
-            Some(byte) => *byte == '/' as u8,
+            Some(byte) => *byte == b'/',
             None => return,
         };
 
@@ -240,16 +228,13 @@ pub fn is_binary(file: &Path) -> bool {
         Err(_) => return false,
     };
 
-    let mut iterations = 0;
-
-    for byte in contents {
+    for (iteration, byte) in contents.into_iter().enumerate() {
         if byte == 0b0 {
             return true;
         }
-        if iterations > 8000 {
+        if iteration > 8000 {
             return false;
         }
-        iterations += 1;
     }
 
     false
