@@ -83,23 +83,21 @@ impl Config {
     fn template_file(&self, source: &Path, dest: &Path) -> Result<(), Box<dyn Error>> {
         let source = BufReader::new(File::open(source)?);
         let mut dest = File::create(dest)?;
-        let mut in_disabled_feature = false;
+        let mut feature_stack = Vec::new();
 
         for line in source.lines() {
-            let line = line?;
-            let feature = self.is_feature_enable_or_disable(&line);
-
-            match feature {
-                Some(enabled) => {
-                    if in_disabled_feature {
-                        in_disabled_feature = false;
-                    } else if !enabled {
-                        in_disabled_feature = true;
+            let mut line = line?;
+            match Config::get_feature(&line) {
+                Some(feature) => match feature_stack.last() {
+                    Some((last, _)) if *last == feature => {
+                        feature_stack.pop();
+                    },
+                    _ => {
+                        feature_stack.push((feature.to_owned(), self.is_enabled(&feature)));
                     }
                 }
                 None => {
-                    if !in_disabled_feature {
-                        let mut line = line;
+                    if feature_stack.iter().all(|(_, enabled)| *enabled) {
                         for (key, value) in &self.substitutions {
                             line = line.replace(key, value);
                         }
@@ -113,19 +111,17 @@ impl Config {
         Ok(())
     }
 
-    fn is_feature_enable_or_disable(&self, line: &str) -> Option<bool> {
+    fn get_feature(line: &str) -> Option<&str> {
         let re = Regex::new("^\\s*### .*$").unwrap();
         if re.is_match(line) {
-            let found_feature = &line.trim()[3..].trim();
-            for feature in &self.features {
-                if found_feature == feature {
-                    return Some(true);
-                }
-            }
-            Some(false)
+            Some(line.trim()[3..].trim())
         } else {
             None
         }
+    }
+
+    fn is_enabled(&self, feature: &str) -> bool {
+        self.features.iter().any(|f| f == feature)
     }
 
     pub fn template(&self, source_dir: &str, dest_dir: &str) -> Result<(), Box<dyn Error>> {

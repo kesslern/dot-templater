@@ -8,3 +8,4 @@ Test a shell command: 1234
 
 this should appear
     this should appear (test indentation)
+this should appear (test nested features)

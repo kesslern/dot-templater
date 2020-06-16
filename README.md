@@ -47,7 +47,7 @@ SHELL_COMMAND=SHELL echo 1234
 ```
 
 #### Feature Flags
-Any line in the rules configuration file that does not include a `=` character and is not a comment will enable the feature name that matches the line. Dotfiles can designate togglable features with three octothorpes followed by the feature name. 
+Any line in the rules configuration file that does not include a `=` character and is not a comment will enable the feature name that matches the line. Dotfiles can designate togglable features with three octothorpes followed by the feature name. Features can be nested.
 ```
 FEATURE1
 ```
