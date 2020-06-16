@@ -60,6 +60,10 @@ This line will only be included when FEATURE1 is enabled.
 This line will always be included.
 ```
 
+## Releases
+
+[Pre-built Linux binaries are available](https://github.com/kesslern/dot-templater/releases), as well as AUR packages for [releases](https://aur.archlinux.org/packages/dot-templater/) and [building from latest source](https://aur.archlinux.org/packages/dot-templater-git/).
+
 ## Release Builds
 
 ### Dependencies
@@ -67,7 +71,7 @@ This line will always be included.
 * cargo
 
 ### Compiling
-`make` compiles a release build, producing `target/release/dot-templater`.
+`make release` compiles a release build, producing `target/release/dot-templater`.
 
 ### Testing
 `make test` copies the files in `test/dotfiles` to `test/dest` according to `test/rules` and compares with `test/expected`.
