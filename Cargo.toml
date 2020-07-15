@@ -2,6 +2,7 @@
 name = "dot-templater"
 version = "0.1.0"
 authors = ["Nathan Kessler <nathant93@gmail.com>"]
+edition = "2018"
 
 [dependencies]
 walkdir = "2"

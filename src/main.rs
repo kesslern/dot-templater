@@ -1,6 +1,3 @@
-extern crate dot_templater;
-extern crate walkdir;
-
 use dot_templater::Arguments;
 use dot_templater::Config;
 use std::env;
