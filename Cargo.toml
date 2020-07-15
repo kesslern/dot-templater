@@ -5,5 +5,7 @@ authors = ["Nathan Kessler <nathant93@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+clap = "2.33"
+difference = "2.0"
 walkdir = "2"
 regex = "1"

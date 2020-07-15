@@ -1,6 +1,13 @@
+extern crate clap;
+extern crate difference;
+extern crate regex;
+
+extern crate walkdir;
+
+use difference::Changeset;
+use difference::Difference;
 use regex::Regex;
 use std::collections::HashMap;
-use std::env;
 use std::error::Error;
 use std::fs;
 use std::fs::File;
@@ -77,10 +84,10 @@ impl Config {
         }
     }
 
-    fn template_file(&self, source: &Path, dest: &Path) -> Result<(), Box<dyn Error>> {
+    fn template_file(&self, source: &Path) -> Result<String, Box<dyn Error>> {
         let source = BufReader::new(File::open(source)?);
-        let mut dest = File::create(dest)?;
         let mut feature_stack = Vec::new();
+        let mut templated_output = String::new();
 
         for line in source.lines() {
             let mut line = line?;
@@ -88,24 +95,24 @@ impl Config {
                 Some(feature) => match feature_stack.last() {
                     Some((last, _)) if *last == feature => {
                         feature_stack.pop();
-                    },
+                    }
                     _ => {
                         feature_stack.push((feature.to_owned(), self.is_enabled(&feature)));
                     }
-                }
+                },
                 None => {
                     if feature_stack.iter().all(|(_, enabled)| *enabled) {
                         for (key, value) in &self.substitutions {
                             line = line.replace(key, value);
                         }
-                        dest.write_all(line.as_bytes())?;
-                        dest.write_all(b"\n")?;
+                        templated_output.push_str(&line);
+                        templated_output.push('\n');
                     }
                 }
             }
         }
 
-        Ok(())
+        Ok(templated_output)
     }
 
     fn get_feature(line: &str) -> Option<&str> {
@@ -120,28 +127,11 @@ impl Config {
     fn is_enabled(&self, feature: &str) -> bool {
         self.features.iter().any(|f| f == feature)
     }
+}
 
-    pub fn template(&self, source_dir: &str, dest_dir: &str) -> Result<(), Box<dyn Error>> {
-        for entry in WalkDir::new(source_dir) {
-            let source_file = entry?;
-            let source_file = source_file.path();
-            let dest_file = source_file.to_str().unwrap().replace(source_dir, dest_dir);
-            let dest_file = Path::new(&dest_file);
-            let source_file_is_dir = is_dir(source_file);
-
-            if !dest_file.exists() && source_file_is_dir {
-                fs::create_dir(dest_file)?;
-            } else if !source_file_is_dir {
-                if is_binary(source_file) {
-                    fs::copy(source_file, dest_file)?;
-                } else {
-                    self.template_file(source_file, dest_file)?;
-                }
-            }
-        }
-
-        Ok(())
-    }
+pub enum Mode {
+    Template,
+    Diff,
 }
 
 pub enum ConfigValue {
@@ -149,55 +139,120 @@ pub enum ConfigValue {
     Substitution { key: String, value: String },
 }
 
-pub struct Arguments {
-    pub rules: String,
-    pub source: String,
-    pub dest: String,
+pub struct Arguments<'a> {
+    pub rules: &'a str,
+    pub source: &'a str,
+    pub dest: &'a str,
+    pub diff: Mode,
 }
 
-impl Arguments {
-    pub fn new(mut args: env::Args) -> Result<Arguments, &'static str> {
-        args.next();
-
-        let rules = match args.next() {
-            Some(arg) => arg,
-            None => return Err("No rules file provided."),
+impl<'a> Arguments<'a> {
+    pub fn new(args: &'a clap::ArgMatches) -> Self {
+        let rules = args.value_of("CONFIG").expect("CONFIG is required");
+        let mut source = args.value_of("SRC_DIR").expect("SRC_DIR is required");
+        let mut dest = args.value_of("DEST_DIR").expect("DEST_DIR is required");
+        let diff = if args.is_present("diff") {
+            Mode::Diff
+        } else {
+            Mode::Template
         };
 
-        let mut source: String = match args.next() {
-            Some(arg) => arg,
-            None => return Err("No source directory provided."),
-        };
+        source = Self::trim_trailing_slash(&source);
+        dest = Self::trim_trailing_slash(&dest);
 
-        let mut dest: String = match args.next() {
-            Some(arg) => arg,
-            None => return Err("No destination directory provided."),
-        };
-
-        Arguments::trim_trailing_slash(&mut source);
-        Arguments::trim_trailing_slash(&mut dest);
-
-        Ok(Arguments {
+        Self {
             rules,
             source,
             dest,
-        })
+            diff,
+        }
     }
 
-    fn trim_trailing_slash(string: &mut String) {
-        let len = string.len();
-        let has_trailing_slash = match string.as_bytes().last() {
-            Some(byte) => *byte == b'/',
-            None => return,
-        };
-
-        if has_trailing_slash {
-            string.truncate(len - 1);
+    fn trim_trailing_slash(string: &str) -> &str {
+        if let Some(b'/') = string.as_bytes().last() {
+            &string[..string.len() - 1]
+        } else {
+            string
         }
     }
 }
 
-pub fn is_dir(file: &Path) -> bool {
+fn template_files(config: &Config, source: &Path, dest: &Path) -> Result<(), Box<dyn Error>> {
+    if is_dir(source) {
+        if !dest.exists() {
+            fs::create_dir(dest)?;
+        }
+    } else if is_binary(source) {
+        fs::copy(source, dest)?;
+    } else {
+        let templated = config.template_file(source)?;
+
+        File::create(dest)?.write_all(templated.as_bytes())?;
+    }
+
+    Ok(())
+}
+
+fn diff_files(config: &Config, source: &Path, dest: &Path) -> Result<(), Box<dyn Error>> {
+    if !is_dir(source) {
+        if !dest.exists() {
+            println!("--- Destination file {} does not exist ---", dest.display());
+        } else if is_binary(source) {
+            println!(
+                "--- Cannot display diff for binary file {} ---",
+                source.display()
+            );
+        } else {
+            let existing = fs::read_to_string(dest)?;
+            let templated = config.template_file(source)?;
+            let changeset = Changeset::new(&existing, &templated, "\n");
+
+            if changeset
+                .diffs
+                .iter()
+                .all(|diff| matches!(*diff, Difference::Same(_)))
+            {
+                println!(
+                    "--- No difference between {} and {} ---",
+                    source.display(),
+                    dest.display()
+                );
+            } else {
+                println!(
+                    "--- Diff results for {} and {} ---",
+                    source.display(),
+                    dest.display()
+                );
+                println!("{}", changeset);
+            }
+        }
+    }
+
+    Ok(())
+}
+
+pub fn template(
+    config: &Config,
+    source_dir: &str,
+    dest_dir: &str,
+    mode: Mode,
+) -> Result<(), Box<dyn Error>> {
+    for entry in WalkDir::new(source_dir) {
+        let source_file = entry?;
+        let source_file = source_file.path();
+        let dest_file = source_file.to_str().unwrap().replace(source_dir, dest_dir);
+        let dest_file = Path::new(&dest_file);
+
+        match mode {
+            Mode::Template => template_files(config, &source_file, &dest_file)?,
+            Mode::Diff => diff_files(config, &source_file, &dest_file)?,
+        }
+    }
+
+    Ok(())
+}
+
+fn is_dir(file: &Path) -> bool {
     match fs::metadata(file) {
         Ok(metadata) => metadata,
         Err(_) => return false,
@@ -205,7 +260,7 @@ pub fn is_dir(file: &Path) -> bool {
     .is_dir()
 }
 
-pub fn is_binary(file: &Path) -> bool {
+fn is_binary(file: &Path) -> bool {
     if is_dir(file) {
         return false;
     }

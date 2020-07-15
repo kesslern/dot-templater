@@ -10,6 +10,7 @@ Storing dotfiles in git repositories allows them to be shared across multiple co
 * Toggle chunks of files per feature flags.
 * Copy binary files without templating.
 * Preserve file permissions.
+* Diff mode to compare expected output against existing files
 
 ## Planned Features
 Feature requests are welcome!
@@ -27,6 +28,12 @@ dot-templater CONFIG SRC_DIR DEST_DIR
 ```
 
 Copies files from `SRC_DIR` to `DEST_DIR` according to rules in `CONFIG`.
+
+```
+dot-templater --diff CONFIG SRC_DIR DEST_DIR
+```
+
+Compares files from `SRC_DIR` modified according to rules in `CONFIG` against the contents of `DEST_DIR`.
 
 ### Config Format
 Any line beginning with `#` is ignored. Config file can contain key/value substitutions and feature flags.
