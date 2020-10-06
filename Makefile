@@ -1,6 +1,5 @@
-# These targets don't produce files
-.PHONY: install
-.PHONY: test
+# These targets are not file names
+.PHONY: install test all build release
 
 DESTDIR=/usr/bin
 EXECFILE=target/release/dot-templater
@@ -20,9 +19,11 @@ build: $(SRCS)
 	cargo build
 
 release: $(SRCS)
-	   cargo build --release --locked --all-features
+	cargo build --release --locked --all-features
 
-test:
+$(EXECFILE): release
+
+test: $(EXECFILE)
 	rm -rf $(TEST_DEST_DIR)
 	mkdir $(TEST_DEST_DIR)
 	./$(EXECFILE) $(TEST_RULES) $(TEST_DOTFILES) $(TEST_DEST_DIR); \
