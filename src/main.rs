@@ -39,6 +39,15 @@ fn main() {
                 .long("diff")
                 .help("Diff mode"),
         )
+        .arg(
+            Arg::with_name("ignore")
+                .short("i")
+                .long("ignore")
+                .help("Ignore file")
+                .multiple(true)
+                .min_values(0)
+                .takes_value(true),
+        )
         .after_help(concat!(
             "Copy files from SRC_DIR to DEST_DIR using rules defined in CONFIG.\n\n",
             "Rules configuration:\n",
@@ -65,8 +74,9 @@ fn main() {
         process::exit(1);
     });
 
-    dot_templater::template(&config, &args.source, &args.dest, args.diff).unwrap_or_else(|err| {
-        eprintln!("Error while performing templating: {}", err);
-        process::exit(1);
-    });
+    dot_templater::template(&config, &args.source, &args.dest, args.diff, args.ignore)
+        .unwrap_or_else(|err| {
+            eprintln!("Error while performing templating: {}", err);
+            process::exit(1);
+        });
 }

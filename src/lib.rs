@@ -144,6 +144,7 @@ pub struct Arguments<'a> {
     pub source: &'a str,
     pub dest: &'a str,
     pub diff: Mode,
+    pub ignore: Vec<&'a str>,
 }
 
 impl<'a> Arguments<'a> {
@@ -159,12 +160,17 @@ impl<'a> Arguments<'a> {
 
         source = Self::trim_trailing_slash(&source);
         dest = Self::trim_trailing_slash(&dest);
+        let ignore = match args.values_of("ignore") {
+            Some(value) => value.collect(),
+            None => vec![],
+        };
 
         Self {
             rules,
             source,
             dest,
             diff,
+            ignore,
         }
     }
 
@@ -236,8 +242,13 @@ pub fn template(
     source_dir: &str,
     dest_dir: &str,
     mode: Mode,
+    ignore: Vec<&str>,
 ) -> Result<(), Box<dyn Error>> {
-    for entry in WalkDir::new(source_dir) {
+    for entry in WalkDir::new(source_dir).into_iter().filter_entry(|entry| {
+        let ignore_list: Vec<&Path> = ignore.iter().map(|fname| Path::new(fname)).collect();
+
+        !ignore_list.contains(&entry.path().strip_prefix(&source_dir).unwrap())
+    }) {
         let source_file = entry?;
         let source_file = source_file.path();
         let dest_file = source_file.to_str().unwrap().replace(source_dir, dest_dir);

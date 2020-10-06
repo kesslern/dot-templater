@@ -35,6 +35,11 @@ dot-templater --diff CONFIG SRC_DIR DEST_DIR
 
 Compares files from `SRC_DIR` modified according to rules in `CONFIG` against the contents of `DEST_DIR`.
 
+### Parameters
+* `-i <file> [...files]` or `--ignore <file> [...files]`  
+  Excludes a file or directory (and all children) from templating, ie. they will not be copied to the destination directory.
+  For example, use `-i .git` for git controlled dotfile repositories.
+
 ### Config Format
 Any line beginning with `#` is ignored. Config file can contain key/value substitutions and feature flags.
 

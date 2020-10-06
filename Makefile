@@ -8,6 +8,7 @@ TEST_RULES=test/rules
 TEST_DOTFILES=test/dotfiles
 TEST_DEST_DIR=test/dest
 TEST_EXPECTED_DIR=test/expected
+TEST_IGNORE_ARG=--ignore ignored_file
 
 DIFF_FLAGS=-qNr
 
@@ -26,7 +27,7 @@ $(EXECFILE): release
 test: $(EXECFILE)
 	rm -rf $(TEST_DEST_DIR)
 	mkdir $(TEST_DEST_DIR)
-	./$(EXECFILE) $(TEST_RULES) $(TEST_DOTFILES) $(TEST_DEST_DIR); \
+	./$(EXECFILE) $(TEST_RULES) $(TEST_DOTFILES) $(TEST_DEST_DIR) $(TEST_IGNORE_ARG); \
 	diff $(DIFF_FLAGS) $(TEST_DEST_DIR) $(TEST_EXPECTED_DIR)
 	if [ ! -x "$(TEST_DEST_DIR)/binary_file" ]; then \
 		@echo "Expected binary_file to be executable."; \
