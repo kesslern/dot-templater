@@ -1,6 +1,6 @@
 [package]
 name = "dot-templater"
-version = "1.4.1"
+version = "1.4.2"
 authors = ["Nathan Kessler <nathant93@gmail.com>"]
 edition = "2018"
 
