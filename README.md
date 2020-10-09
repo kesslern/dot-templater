@@ -10,7 +10,8 @@ Storing dotfiles in git repositories allows them to be shared across multiple co
 * Toggle chunks of files per feature flags.
 * Copy binary files without templating.
 * Preserve file permissions.
-* Diff mode to compare expected output against existing files
+* Perform a dry-run to compare expected output against existing files.
+* Ignore specific files/folders.
 
 ## Planned Features
 Feature requests are welcome!
