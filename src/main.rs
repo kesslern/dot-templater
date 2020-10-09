@@ -13,7 +13,7 @@ use std::process;
 
 fn main() {
     let matches = App::new("dot-templater")
-        .version("0.1.0")
+        .version(env!("CARGO_PKG_VERSION"))
         .author("Nathan Kessler <nathant93@gmail.com>")
         .arg(
             Arg::with_name("CONFIG")
