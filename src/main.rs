@@ -9,6 +9,7 @@ use dot_templater::Config;
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
+use std::io::{self};
 use std::process;
 
 fn main() {
@@ -24,13 +25,11 @@ fn main() {
         .arg(
             Arg::with_name("SRC_DIR")
                 .help("Path to directory containing template files")
-                .required(true)
                 .index(2),
         )
         .arg(
             Arg::with_name("DEST_DIR")
                 .help("Path to generate output files in")
-                .required(true)
                 .index(3),
         )
         .arg(
@@ -74,9 +73,16 @@ fn main() {
         process::exit(1);
     });
 
-    dot_templater::template(&config, &args.source, &args.dest, args.diff, args.ignore)
-        .unwrap_or_else(|err| {
-            eprintln!("Error while performing templating: {}", err);
-            process::exit(1);
-        });
+    if args.source.is_some() && args.dest.is_some() {
+        let source = &args.source.unwrap();
+        let dest = &args.dest.unwrap();
+
+        dot_templater::template(&config, &source, &dest, args.diff, args.ignore)
+    } else {
+        dot_templater::template_lines(&config, io::stdin().lock().lines())
+    }
+    .unwrap_or_else(|err| {
+        eprintln!("Error while performing templating: {}", err);
+        process::exit(1);
+    });
 }

@@ -84,12 +84,14 @@ impl Config {
         }
     }
 
-    fn template_file(&self, source: &Path) -> Result<String, Box<dyn Error>> {
-        let source = BufReader::new(File::open(source)?);
+    fn template_lines<T: BufRead>(
+        &self,
+        lines: std::io::Lines<T>,
+    ) -> Result<String, Box<dyn Error>> {
         let mut feature_stack = Vec::new();
         let mut templated_output = String::new();
 
-        for line in source.lines() {
+        for line in lines {
             let mut line = line?;
             match Config::get_feature(&line) {
                 Some(feature) => match feature_stack.last() {
@@ -113,6 +115,12 @@ impl Config {
         }
 
         Ok(templated_output)
+    }
+
+    fn template_file(&self, source: &Path) -> Result<String, Box<dyn Error>> {
+        let source = BufReader::new(File::open(source)?);
+
+        Ok(self.template_lines(source.lines())?)
     }
 
     fn get_feature(line: &str) -> Option<&str> {
@@ -141,25 +149,33 @@ pub enum ConfigValue {
 
 pub struct Arguments<'a> {
     pub rules: &'a str,
-    pub source: &'a str,
-    pub dest: &'a str,
     pub diff: Mode,
+    pub source: Option<&'a str>,
+    pub dest: Option<&'a str>,
     pub ignore: Vec<&'a str>,
 }
 
 impl<'a> Arguments<'a> {
     pub fn new(args: &'a clap::ArgMatches) -> Self {
         let rules = args.value_of("CONFIG").expect("CONFIG is required");
-        let mut source = args.value_of("SRC_DIR").expect("SRC_DIR is required");
-        let mut dest = args.value_of("DEST_DIR").expect("DEST_DIR is required");
+        let mut source = args.value_of("SRC_DIR");
+        let mut dest = args.value_of("DEST_DIR");
         let diff = if args.is_present("diff") {
             Mode::Diff
         } else {
             Mode::Template
         };
 
-        source = Self::trim_trailing_slash(&source);
-        dest = Self::trim_trailing_slash(&dest);
+        source = match &source {
+            None => None,
+            Some(s) => Some(Self::trim_trailing_slash(&s)),
+        };
+
+        dest = match &dest {
+            None => None,
+            Some(s) => Some(Self::trim_trailing_slash(&s)),
+        };
+
         let ignore = match args.values_of("ignore") {
             Some(value) => value.collect(),
             None => vec![],
@@ -233,6 +249,15 @@ fn diff_files(config: &Config, source: &Path, dest: &Path) -> Result<(), Box<dyn
             }
         }
     }
+
+    Ok(())
+}
+
+pub fn template_lines(
+    config: &Config,
+    lines: std::io::Lines<std::io::StdinLock>,
+) -> Result<(), Box<dyn Error>> {
+    print!("{}", config.template_lines(lines)?);
 
     Ok(())
 }

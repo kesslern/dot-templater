@@ -2,12 +2,12 @@
 A small, portable Rust program intended for templating dotfiles across multiple systems.
 
 ## Purpose
-Storing dotfiles in git repositories allows them to be shared across multiple computers, but this becomes problematic once systems require slightly different configurations. Laptops require battery indicators and WiFi utilities, HiDPI displays use larger fonts... `dot-templater` intends to solve these problems by making it simple to change values or enable/disable chunks of configuration in any file.
+Storing dotfiles in git repositories allows them to be shared across multiple computers, but this becomes problematic once systems require slightly different configurations. Laptops require battery indicators and WiFi utilities, HiDPI displays use larger fonts... `dot-templater` intends to solve these problems by making it simple to change values or enable/disable chunks of configuration in any file, or content from stdin.
 
 ## Features
-* Make string substitutions in files according to configured key/value pairs.
+* Make string substitutions in files/content according to configured key/value pairs.
 * Use output from arbitrary shell commands in templated dotfiles (e.g. for passwords with GNU Pass).
-* Toggle chunks of files per feature flags.
+* Toggle chunks of files/content per feature flags.
 * Copy binary files without templating.
 * Preserve file permissions.
 * Perform a dry-run to compare expected output against existing files.
@@ -29,6 +29,12 @@ dot-templater CONFIG SRC_DIR DEST_DIR
 ```
 
 Copies files from `SRC_DIR` to `DEST_DIR` according to rules in `CONFIG`.
+
+```
+dot-templater CONFIG
+```
+
+Templates content from stdin to stdout according to rules in `CONFIG`.
 
 ```
 dot-templater --diff CONFIG SRC_DIR DEST_DIR

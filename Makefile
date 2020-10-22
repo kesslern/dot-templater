@@ -28,6 +28,7 @@ test: $(EXECFILE)
 	rm -rf $(TEST_DEST_DIR)
 	mkdir $(TEST_DEST_DIR)
 	./$(EXECFILE) $(TEST_RULES) $(TEST_DOTFILES) $(TEST_DEST_DIR) $(TEST_IGNORE_ARG); \
+	cat $(TEST_DOTFILES)/template | ./$(EXECFILE) $(TEST_RULES) > $(TEST_DEST_DIR)/stdout; \
 	diff $(DIFF_FLAGS) $(TEST_DEST_DIR) $(TEST_EXPECTED_DIR)
 	if [ ! -x "$(TEST_DEST_DIR)/binary_file" ]; then \
 		@echo "Expected binary_file to be executable."; \
