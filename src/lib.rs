@@ -116,7 +116,7 @@ impl Config {
     }
 
     fn get_feature(line: &str) -> Option<&str> {
-        let re = Regex::new("^\\s*### .*$").unwrap();
+        let re = Regex::new("^\\s*### .*$").expect("fixed regex always valid");
         if re.is_match(line) {
             Some(line.trim()[3..].trim())
         } else {
@@ -244,14 +244,24 @@ pub fn template(
     mode: Mode,
     ignore: Vec<&str>,
 ) -> Result<(), Box<dyn Error>> {
-    for entry in WalkDir::new(source_dir).into_iter().filter_entry(|entry| {
-        let ignore_list: Vec<&Path> = ignore.iter().map(|fname| Path::new(fname)).collect();
+    let ignore_list: Vec<&Path> = ignore.iter().map(|fname| Path::new(fname)).collect();
 
-        !ignore_list.contains(&entry.path().strip_prefix(&source_dir).unwrap())
-    }) {
+    let filtered_paths = WalkDir::new(source_dir).into_iter().filter_entry(|entry| {
+        !ignore_list.contains(
+            &entry
+                .path()
+                .strip_prefix(&source_dir)
+                .expect("entry should always have source_dir prefix"),
+        )
+    });
+
+    for entry in filtered_paths {
         let source_file = entry?;
         let source_file = source_file.path();
-        let dest_file = source_file.to_str().unwrap().replace(source_dir, dest_dir);
+        let dest_file = source_file
+            .to_str()
+            .expect("expected UTF-8 path")
+            .replace(source_dir, dest_dir);
         let dest_file = Path::new(&dest_file);
 
         match mode {
