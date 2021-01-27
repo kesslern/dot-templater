@@ -192,7 +192,11 @@ impl<'a> Arguments<'a> {
 
     fn trim_trailing_slash(string: &str) -> &str {
         if let Some(b'/') = string.as_bytes().last() {
-            &string[..string.len() - 1]
+            if string.len() == 1 {
+                string
+            } else {
+                &string[..string.len() - 1]
+            }
         } else {
             string
         }
